@@ -8,6 +8,23 @@ import { UploadBox } from './components/UploadBox'
 import { useI18n } from '../../i18n/useI18n'
 import type { Locale } from '../../i18n/messages'
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').trim()
+const API_KEY = (import.meta.env.VITE_API_KEY ?? '').trim()
+const SIGNED_UPLOAD_PATH = (import.meta.env.VITE_SIGNED_UPLOAD_PATH ?? '/api/storage/signed-upload-url').trim()
+const FEEDBACK_SUBMIT_PATH = (import.meta.env.VITE_FEEDBACK_SUBMIT_PATH ?? '/api/feedback').trim()
+
+type SignedUploadResponse = {
+  uploadUrl: string
+  fileUrl: string
+  requiredHeaders?: Record<string, string>
+}
+
+type AttachmentPayload = {
+  url: string
+  filename: string
+  size: number
+}
+
 const LOCALE_OPTIONS: Array<{ value: Locale; shortLabel: string; labelKey: string }> = [
   { value: 'zh-CN', shortLabel: '简', labelKey: 'locale.zh-CN' },
   { value: 'zh-Hant', shortLabel: '繁', labelKey: 'locale.zh-Hant' },
@@ -25,14 +42,144 @@ export function FeedbackPage() {
   const [rating, setRating] = useState(5)
   const [contact, setContact] = useState('')
   const [allowContact, setAllowContact] = useState(true)
+  const [files, setFiles] = useState<File[]>([])
   const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [isLocalePickerOpen, setIsLocalePickerOpen] = useState(false)
 
-  function handleSubmit() {
-    if (!content.trim()) return
-    // TODO: call API
-    setSubmitted(true)
-    setTimeout(() => setSubmitted(false), 3000)
+  function buildApiUrl(path: string): string {
+    if (/^https?:\/\//.test(path)) return path
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`
+    if (!API_BASE_URL) return normalizedPath
+    const base = API_BASE_URL.replace(/\/$/, '')
+    return `${base}${normalizedPath}`
+  }
+
+  async function getSignedUploadUrl(file: File): Promise<SignedUploadResponse> {
+    const response = await fetch(buildApiUrl(SIGNED_UPLOAD_PATH), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
+      },
+      body: JSON.stringify({
+        filename: file.name,
+        contentType: file.type || 'application/octet-stream',
+        size: file.size,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to get signed url: ${response.status}`)
+    }
+
+    return (await response.json()) as SignedUploadResponse
+  }
+
+  async function uploadFileToCloudStorage(
+    file: File,
+    onProgress?: (loaded: number, total: number) => void,
+  ): Promise<AttachmentPayload> {
+    const signed = await getSignedUploadUrl(file)
+
+    await new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      xhr.open('PUT', signed.uploadUrl, true)
+      xhr.timeout = 10 * 60 * 1000
+
+      const headers = {
+        'Content-Type': file.type || 'application/octet-stream',
+        ...(signed.requiredHeaders ?? {}),
+      }
+
+      for (const [key, value] of Object.entries(headers)) {
+        xhr.setRequestHeader(key, value)
+      }
+
+      xhr.upload.onprogress = event => {
+        if (!event.lengthComputable) return
+        onProgress?.(event.loaded, event.total)
+      }
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          onProgress?.(file.size, file.size)
+          resolve()
+          return
+        }
+        reject(new Error(`Upload failed: ${xhr.status}`))
+      }
+
+      xhr.onerror = () => reject(new Error('Upload failed: network error'))
+      xhr.ontimeout = () => reject(new Error('Upload failed: timeout'))
+      xhr.send(file)
+    })
+
+    return {
+      url: signed.fileUrl,
+      filename: file.name,
+      size: file.size,
+    }
+  }
+
+  async function handleSubmit() {
+    if (!content.trim() || isSubmitting) return
+
+    setIsSubmitting(true)
+    setUploadProgress(0)
+    try {
+      const totalBytes = files.reduce((sum, file) => sum + file.size, 0)
+      let uploadedBytesBeforeCurrent = 0
+      const attachments: AttachmentPayload[] = []
+
+      for (const file of files) {
+        const attachment = await uploadFileToCloudStorage(file, (loaded, total) => {
+          if (totalBytes === 0) return
+          const currentFileLoaded = Math.min(loaded, total)
+          const overall = Math.round(((uploadedBytesBeforeCurrent + currentFileLoaded) / totalBytes) * 100)
+          setUploadProgress(Math.max(0, Math.min(100, overall)))
+        })
+
+        attachments.push(attachment)
+        uploadedBytesBeforeCurrent += file.size
+        if (totalBytes > 0) {
+          const overall = Math.round((uploadedBytesBeforeCurrent / totalBytes) * 100)
+          setUploadProgress(Math.max(0, Math.min(100, overall)))
+        }
+      }
+
+      const submitResponse = await fetch(buildApiUrl(FEEDBACK_SUBMIT_PATH), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
+        },
+        body: JSON.stringify({
+          type: feedbackType,
+          content: content.trim(),
+          rating,
+          contact,
+          allowContact,
+          locale,
+          attachments,
+        }),
+      })
+
+      if (!submitResponse.ok) {
+        throw new Error(`Submit failed: ${submitResponse.status}`)
+      }
+
+      setUploadProgress(100)
+      setSubmitted(true)
+      setFiles([])
+      setTimeout(() => setSubmitted(false), 3000)
+    } catch (error) {
+      console.error('Submit feedback failed:', error)
+    } finally {
+      setUploadProgress(0)
+      setIsSubmitting(false)
+    }
   }
 
   function selectLocale(nextLocale: Locale) {
@@ -113,7 +260,7 @@ export function FeedbackPage() {
 
         <Card>
           <SectionHeader icon="📎" title={t('section.attachments')} />
-          <UploadBox />
+          <UploadBox files={files} onFilesChange={setFiles} />
         </Card>
 
         <Card>
@@ -158,9 +305,10 @@ export function FeedbackPage() {
         <button
           type="button"
           onClick={handleSubmit}
-          className="pointer-events-auto w-full border-0 rounded-xl bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white text-[15px] font-bold py-[13px] cursor-pointer shadow-[0_8px_20px_rgba(102,126,234,0.3)] active:scale-[0.99] transition-transform"
+          disabled={isSubmitting}
+          className="pointer-events-auto w-full border-0 rounded-xl bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white text-[15px] font-bold py-[13px] cursor-pointer shadow-[0_8px_20px_rgba(102,126,234,0.3)] active:scale-[0.99] transition-transform disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          ✈ {t('submit.button')}
+          {isSubmitting ? `Uploading... ${uploadProgress}%` : `✈ ${t('submit.button')}`}
         </button>
       </div>
 

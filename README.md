@@ -14,3 +14,23 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Environment Variables
+
+This project supports `.env` files via Vite.
+
+1. Copy `.env.example` to `.env.local`.
+2. Configure the values for your Cloud Run backend.
+
+Available variables:
+
+- `VITE_API_BASE_URL`: Cloud Run service URL.
+- `VITE_API_KEY`: Optional API key sent as `x-api-key` from browser requests.
+- `VITE_SIGNED_UPLOAD_PATH`: Endpoint that returns Cloud Storage signed upload URLs.
+- `VITE_FEEDBACK_SUBMIT_PATH`: Endpoint that stores feedback metadata.
+
+Security note:
+
+- Do not put Google service account private keys in frontend `.env` files.
+- The browser should only call Cloud Run.
+- Cloud Run uses secure server-side credentials to generate signed URLs for Cloud Storage.

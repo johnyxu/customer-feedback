@@ -125,7 +125,22 @@ BigQuery：首 1TB 查询免费，适合月度分析汇总。
 详细设计
 1. 数据模型（Firestore Collections）
 
-/feedback/{feedbackId}  ├─ id: string (UUID)  ├─ type: string (bug / feature / experience / other)  ├─ content: string (反馈内容)  ├─ rating: number (1-5 满意度)  ├─ contact: string (邮箱或微信)  ├─ allowContact: boolean  ├─ attachments: array (文件 URL 列表)  │   └─ { url: string, filename: string, size: number }  ├─ status: string (new / reviewed / replied / resolved)  ├─ reply: string (客服回复，可选)  ├─ createdAt: timestamp  ├─ updatedAt: timestamp  ├─ tags: array (客服标签，如"紧急"、"已回复")  └─ locale: string (zh-CN / zh-Hant / en)
+/feedback/{feedbackId}  
+├─ id: string (UUID)  
+├─ type: string (bug / feature / experience / other)  
+├─ content: string (反馈内容)  
+├─ rating: number (1-5 满意度)  
+├─ contact: string (邮箱或微信)  
+├─ allowContact: boolean  
+├─ attachments: array (文件 URL 列表)  
+│   └─ { url: string, filename: string, size: number }  
+├─ status: string (new / reviewed / replied / resolved)  
+├─ reply: string (客服回复，可选)
+├─ createdAt: timestamp  
+├─ updatedAt: timestamp  
+├─ tags: array (客服标签，如"紧急"、"已回复")  
+└─ locale: string (zh-CN / zh-Hant / en)
+
 2. 后端 API 设计
 核心端点：
 
@@ -176,7 +191,10 @@ Zendesk Team: $55/月
 配置默认位置（建议 asia-northeast1 或 us-central1）。
 第 2 步：设计后端代码（用 Node.js + Express，2-3 天）
 
-xiaozhu-feedback-backend/├─ src/│  ├─ api/│  │  ├─ submitFeedback.ts│  │  ├─ getFeedback.ts│  │  └─ replyFeedback.ts│  ├─ middleware/│  │  ├─ auth.ts (API Key 验证)│  │  ├─ rateLimit.ts (防刷)│  │  └─ errorHandler.ts│  ├─ services/│  │  ├─ firestoreService.ts│  │  ├─ storageService.ts (处理签名 URL)│  │  └─ emailService.ts (可选，用 SendGrid 或 Mailgun)│  └─ index.ts (入口)├─ Dockerfile├─ .env.example└─ package.json
+xiaozhu-feedback-backend/
+├─ src/│  
+├─ api/│  │  
+    ├─ submitFeedback.ts│  │  ├─ getFeedback.ts│  │  └─ replyFeedback.ts│  ├─ middleware/│  │  ├─ auth.ts (API Key 验证)│  │  ├─ rateLimit.ts (防刷)│  │  └─ errorHandler.ts│  ├─ services/│  │  ├─ firestoreService.ts│  │  ├─ storageService.ts (处理签名 URL)│  │  └─ emailService.ts (可选，用 SendGrid 或 Mailgun)│  └─ index.ts (入口)├─ Dockerfile├─ .env.example└─ package.json
 关键库：
 
 firebase-admin：与 Firestore 交互
@@ -293,3 +311,6 @@ API 只做元数据入库和业务校验（防刷、鉴权、状态流转）。
 数据：Firestore（或 Cloud SQL，按你数据复杂度）。
 附件：Cloud Storage 直传（Signed URL）。
 异步任务（可选）：需要时再加 1-2 个 Functions/Cloud Tasks。
+
+附件上传 → Cloud Storage（获取签名 URL）
+API 调用 → Cloud Run 的 POST /api/feedback 端点
