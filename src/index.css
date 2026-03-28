@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-brand: #157a6e;
+  --color-brand-strong: #0e5d54;
+  --color-accent: #ff8f3f;
+  --color-bg: #f4f6ef;
+  --color-bg-soft: #ebefe2;
+  --color-surface: #ffffff;
+  --color-text: #1e2a1d;
+  --color-muted: #5b6b5a;
+  --color-line: #d7dfcb;
+
+  /* Border radius */
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+
+  /* Font families */
+  --font-display: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+  --font-sans: 'Noto Sans SC', 'PingFang SC', sans-serif;
+  --font-mono: 'Space Grotesk', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    margin: 0;
+    min-height: 100%;
+  }
+
+  body {
+    color: var(--color-text);
+    background:
+      radial-gradient(1000px 600px at 12% -20%, #d7efe5 0%, rgba(215, 239, 229, 0) 70%),
+      radial-gradient(800px 500px at 90% -10%, #ffe5d2 0%, rgba(255, 229, 210, 0) 70%),
+      var(--color-bg);
+    font-family: var(--font-sans);
+  }
+
+  a {
+    color: inherit;
+  }
+
+  button,
+  input,
+  textarea {
+    font: inherit;
+  }
+}
