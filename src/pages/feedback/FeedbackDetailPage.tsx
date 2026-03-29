@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
 
 type FeedbackSender = 'customer' | 'admin'
 
@@ -140,9 +141,7 @@ export function FeedbackDetailPage() {
             ‹
           </button>
           <h1 className="font-bold">反馈详情</h1>
-          <button type="button" className="h-9 w-9 rounded-full bg-slate-100 text-slate-500" aria-label="more">
-            …
-          </button>
+          <LocaleSwitcher />
         </div>
       </header>
 

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -25,7 +26,10 @@ export function FeedbackEntryPage() {
   return (
     <div className="min-h-screen bg-[#f5f5f7] font-sans">
       <div className="bg-gradient-to-br from-[#0ea5e9] via-[#2563eb] to-[#4f46e5] px-4 pb-6 pt-3 text-white">
-        <p className="text-xs uppercase tracking-[0.14em] text-white/80">Customer Feedback</p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs uppercase tracking-[0.14em] text-white/80">Customer Feedback</p>
+          <LocaleSwitcher variant="dark" />
+        </div>
         <h1 className="mt-2 text-2xl font-black leading-tight">快速发起反馈，实时跟进处理进展</h1>
         <p className="mt-2 text-sm text-white/90">输入邮箱可接收进度提醒，也可匿名反馈。</p>
       </div>

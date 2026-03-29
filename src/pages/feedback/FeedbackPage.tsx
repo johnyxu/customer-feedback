@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { Card } from '../../components/ui/Card'
 import { SectionHeader } from '../../components/ui/SectionHeader'
 import { NavBar } from '../../components/ui/NavBar'
+import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
 import { TypeChipGroup, type FeedbackTypeId } from './components/TypeChipGroup'
 import { StarRating } from './components/StarRating'
 import { UploadBox } from './components/UploadBox'
 import { useI18n } from '../../i18n/useI18n'
-import type { Locale } from '../../i18n/messages'
 
 const API_BASE_URL =
   (import.meta.env.VITE_FEEDBACK_API_BASE_URL ?? import.meta.env.VITE_API_BASE_URL ?? '').trim()
@@ -26,18 +26,12 @@ type AttachmentPayload = {
   size: number
 }
 
-const LOCALE_OPTIONS: Array<{ value: Locale; shortLabel: string; labelKey: string }> = [
-  { value: 'zh-CN', shortLabel: '简', labelKey: 'locale.zh-CN' },
-  { value: 'zh-Hant', shortLabel: '繁', labelKey: 'locale.zh-Hant' },
-  { value: 'en', shortLabel: 'EN', labelKey: 'locale.en' },
-]
-
 // Shared input style reused by <input> and <textarea>
 const inputCls =
   'w-full border-[1.5px] border-gray-200 rounded-xl px-3 py-[11px] text-sm text-gray-900 bg-white outline-none box-border transition-all focus:border-violet-600 focus:shadow-[0_0_0_3px_rgba(124,58,237,0.12)]'
 
 export function FeedbackPage() {
-  const { locale, setLocale, t } = useI18n()
+  const { locale, t } = useI18n()
   const [feedbackType, setFeedbackType] = useState<FeedbackTypeId>('bug')
   const [content, setContent] = useState('')
   const [rating, setRating] = useState(5)
@@ -47,7 +41,6 @@ export function FeedbackPage() {
   const [submitted, setSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
-  const [isLocalePickerOpen, setIsLocalePickerOpen] = useState(false)
 
   function buildApiUrl(path: string): string {
     if (/^https?:\/\//.test(path)) return path
@@ -183,13 +176,6 @@ export function FeedbackPage() {
     }
   }
 
-  function selectLocale(nextLocale: Locale) {
-    setLocale(nextLocale)
-    setIsLocalePickerOpen(false)
-  }
-
-  const currentLocaleOption = LOCALE_OPTIONS.find(item => item.value === locale) ?? LOCALE_OPTIONS[0]
-
   const contactChannels = [
     { label: t('channel.email.label'), value: t('channel.email.value') },
     { label: t('channel.time.label'), value: t('channel.time.value') },
@@ -211,16 +197,7 @@ export function FeedbackPage() {
               ‹
             </button>
           }
-          right={
-            <button
-              type="button"
-              onClick={() => setIsLocalePickerOpen(true)}
-              aria-label={t('nav.switchLanguage')}
-              className="text-white text-sm opacity-90 cursor-pointer border-0 bg-transparent p-0"
-            >
-              {currentLocaleOption.shortLabel}
-            </button>
-          }
+          right={<LocaleSwitcher variant="dark" />}
         />
         <div className="mt-3">
           <h1 className="text-xl font-bold text-white m-0 mb-1.5">{t('hero.title')}</h1>
@@ -321,47 +298,6 @@ export function FeedbackPage() {
         </div>
       )}
 
-      {isLocalePickerOpen && (
-        <div className="fixed inset-0 z-40">
-          <button
-            type="button"
-            aria-label={t('nav.languagePickerCancel')}
-            onClick={() => setIsLocalePickerOpen(false)}
-            className="absolute inset-0 border-0 bg-black/30"
-          />
-          <div className="absolute top-14 right-4 w-[210px] rounded-xl bg-white border border-gray-100 shadow-[0_12px_30px_rgba(0,0,0,0.18)] p-2.5">
-            <p className="m-0 mb-2 px-1 text-xs font-semibold text-gray-500">{t('nav.languagePickerTitle')}</p>
-            <div className="grid gap-1.5">
-              {LOCALE_OPTIONS.map(item => {
-                const active = item.value === locale
-                return (
-                  <button
-                    key={item.value}
-                    type="button"
-                    onClick={() => selectLocale(item.value)}
-                    className={[
-                      'w-full rounded-lg border px-2.5 py-2 text-left text-sm cursor-pointer transition-colors flex items-center justify-between',
-                      active
-                        ? 'border-violet-300 bg-violet-50 text-violet-700'
-                        : 'border-gray-200 bg-white text-gray-700 hover:border-violet-200 hover:bg-violet-50/40',
-                    ].join(' ')}
-                  >
-                    <span>{t(item.labelKey)}</span>
-                    <span className={active ? 'text-violet-600' : 'text-gray-300'}>{active ? '✓' : '○'}</span>
-                  </button>
-                )
-              })}
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsLocalePickerOpen(false)}
-              className="mt-2 w-full rounded-lg border border-gray-200 bg-white py-2 text-sm text-gray-600 cursor-pointer hover:bg-gray-50"
-            >
-              {t('nav.languagePickerCancel')}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

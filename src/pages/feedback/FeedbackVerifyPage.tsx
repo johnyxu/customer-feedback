@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
 
 const CODE_LENGTH = 6
 const RESEND_SECONDS = 45
@@ -102,9 +103,7 @@ export function FeedbackVerifyPage() {
             ‹
           </button>
           <h1 className="font-bold">验证邮箱</h1>
-          <button type="button" className="h-9 w-9 rounded-full bg-slate-100 text-slate-500" aria-label="help">
-            ?
-          </button>
+          <LocaleSwitcher />
         </div>
       </header>
 

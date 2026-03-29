@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
 
 type FeedbackStatus = 'replied' | 'processing' | 'resolved'
 
@@ -73,13 +74,9 @@ export function FeedbackListPage() {
       <header className="border-b border-slate-200 bg-white px-4 pb-2 pt-3">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold">我的反馈</h1>
-          <button
-            type="button"
-            onClick={() => navigate('/feedback')}
-            className="h-9 rounded-full bg-indigo-600 px-3 text-xs font-semibold text-white"
-          >
-            + 新反馈
-          </button>
+          <div className="flex items-center gap-2">
+            <LocaleSwitcher />
+          </div>
         </div>
       </header>
 
