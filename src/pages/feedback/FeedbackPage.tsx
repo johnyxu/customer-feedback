@@ -8,7 +8,8 @@ import { UploadBox } from './components/UploadBox'
 import { useI18n } from '../../i18n/useI18n'
 import type { Locale } from '../../i18n/messages'
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').trim()
+const API_BASE_URL =
+  (import.meta.env.VITE_FEEDBACK_API_BASE_URL ?? import.meta.env.VITE_API_BASE_URL ?? '').trim()
 const API_KEY = (import.meta.env.VITE_API_KEY ?? '').trim()
 const SIGNED_UPLOAD_PATH = (import.meta.env.VITE_SIGNED_UPLOAD_PATH ?? '/api/storage/signed-upload-url').trim()
 const FEEDBACK_SUBMIT_PATH = (import.meta.env.VITE_FEEDBACK_SUBMIT_PATH ?? '/api/feedback').trim()
