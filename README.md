@@ -26,8 +26,7 @@ Available variables:
 
 - `VITE_API_BASE_URL`: Cloud Run service URL.
 - `VITE_API_KEY`: Optional API key sent as `x-api-key` from browser requests.
-- `VITE_SIGNED_UPLOAD_PATH`: Endpoint that returns Cloud Storage signed upload URLs.
-- `VITE_FEEDBACK_SUBMIT_PATH`: Endpoint that stores feedback metadata.
+
 
 Security note:
 

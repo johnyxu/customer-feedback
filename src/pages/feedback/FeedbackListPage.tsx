@@ -1,44 +1,20 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
+import { listFeedback, clearSessionToken, type FeedbackListItem, type FeedbackStatus } from '../../api/feedbackService'
 
-type FeedbackStatus = 'replied' | 'processing' | 'resolved'
-
-type FeedbackItem = {
-  id: string
-  title: string
-  summary: string
-  status: FeedbackStatus
-  updatedAt: string
-  messageCount: number
+function formatUpdatedAt(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const minutes = Math.floor(diff / 60_000)
+  if (minutes < 1) return '刚刚'
+  if (minutes < 60) return `${minutes} 分钟前`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} 小时前`
+  const days = Math.floor(hours / 24)
+  if (days === 1) return '昨天'
+  if (days < 30) return `${days} 天前`
+  return new Date(iso).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })
 }
-
-const MOCK_FEEDBACKS: FeedbackItem[] = [
-  {
-    id: 'FB-20260329-018',
-    title: 'iOS 端支付后页面卡住',
-    summary: '客服已定位到 iOS 17 WebView 缓存问题，已给出临时处理方案。',
-    status: 'replied',
-    updatedAt: '10 分钟前更新',
-    messageCount: 3,
-  },
-  {
-    id: 'FB-20260328-146',
-    title: '希望增加深色模式',
-    summary: '产品侧已接收需求，正在评估设计与研发排期。',
-    status: 'processing',
-    updatedAt: '昨天',
-    messageCount: 1,
-  },
-  {
-    id: 'FB-20260320-093',
-    title: '视频上传失败（大文件）',
-    summary: '已上线优化方案，建议升级到最新版本后重试。',
-    status: 'resolved',
-    updatedAt: '3 月 20 日',
-    messageCount: 5,
-  },
-]
 
 function statusChip(status: FeedbackStatus): { label: string; className: string } {
   if (status === 'replied') {
@@ -64,9 +40,34 @@ function statusChip(status: FeedbackStatus): { label: string; className: string 
 export function FeedbackListPage() {
   const navigate = useNavigate()
 
+  const [feedbacks, setFeedbacks] = useState<FeedbackListItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    listFeedback()
+      .then(data => {
+        if (!cancelled) setFeedbacks(data)
+      })
+      .catch((err: Error) => {
+        if (cancelled) return
+        if (err.message.includes('401')) {
+          clearSessionToken()
+          navigate('/')
+          return
+        }
+        setError('加载失败，请稍后重试')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [navigate])
+
   const repliedCount = useMemo(
-    () => MOCK_FEEDBACKS.filter(item => item.status === 'replied' || item.status === 'resolved').length,
-    [],
+    () => feedbacks.filter(item => item.status === 'replied' || item.status === 'resolved').length,
+    [feedbacks],
   )
 
   return (
@@ -81,66 +82,66 @@ export function FeedbackListPage() {
       </header>
 
       <main className="space-y-3 px-4 py-4">
-        <section className="rounded-2xl bg-gradient-to-br from-[#2563eb] to-[#4f46e5] p-4 text-white">
-          <p className="text-xs text-white/80">反馈处理概览</p>
-          <p className="mt-1 text-2xl font-black">{Math.round((repliedCount / MOCK_FEEDBACKS.length) * 100)}%</p>
-          <p className="mt-1 text-xs text-white/80">{repliedCount}/{MOCK_FEEDBACKS.length} 条已得到回复或解决</p>
-        </section>
+        {loading && (
+          <p className="py-10 text-center text-sm text-slate-400">加载中…</p>
+        )}
 
-        {MOCK_FEEDBACKS.map(item => {
-          const chip = statusChip(item.status)
-          return (
-            <article
-              key={item.id}
-              className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm"
-              role="button"
-              tabIndex={0}
-              onClick={() =>
-                navigate('/feedback/detail', {
-                  state: {
-                    feedback: {
-                      id: item.id,
-                      title: item.title,
-                      status: item.status,
-                    },
-                  },
-                })
-              }
-              onKeyDown={event => {
-                if (event.key !== 'Enter' && event.key !== ' ') return
-                event.preventDefault()
-                navigate('/feedback/detail', {
-                  state: {
-                    feedback: {
-                      id: item.id,
-                      title: item.title,
-                      status: item.status,
-                    },
-                  },
-                })
-              }}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-xs text-slate-500">#{item.id}</p>
-                  <h2 className="mt-1 text-sm font-semibold text-slate-900">{item.title}</h2>
-                </div>
-                <span className={['rounded-full px-2 py-1 text-[11px] font-semibold', chip.className].join(' ')}>
-                  {chip.label}
-                </span>
-              </div>
+        {!loading && error && (
+          <p className="py-10 text-center text-sm text-red-500">{error}</p>
+        )}
 
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.summary}</p>
+        {!loading && !error && feedbacks.length === 0 && (
+          <p className="py-10 text-center text-sm text-slate-400">暂无反馈记录</p>
+        )}
 
-              <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
-                <span>{item.messageCount} 条对话</span>
-                <span>{item.updatedAt}</span>
-              </div>
+        {!loading && !error && feedbacks.length > 0 && (
+          <>
+            <section className="rounded-2xl bg-gradient-to-br from-[#2563eb] to-[#4f46e5] p-4 text-white">
+              <p className="text-xs text-white/80">反馈处理概览</p>
+              <p className="mt-1 text-2xl font-black">{Math.round((repliedCount / feedbacks.length) * 100)}%</p>
+              <p className="mt-1 text-xs text-white/80">{repliedCount}/{feedbacks.length} 条已得到回复或解决</p>
+            </section>
 
-              <div className="mt-2 text-right text-xs font-semibold text-indigo-600">查看详情 ›</div>
-            </article>
-          )
-        })}
+            {feedbacks.map(item => {
+              const chip = statusChip(item.status)
+              return (
+                <article
+                  key={item.id}
+                  className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/feedback/detail/${item.id}`)}
+                  onKeyDown={event => {
+                    if (event.key !== 'Enter' && event.key !== ' ') return
+                    event.preventDefault()
+                    navigate(`/feedback/detail/${item.id}`)
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-xs text-slate-500">#{item.id}</p>
+                      <h2 className="mt-1 text-sm font-semibold text-slate-900">{item.title}</h2>
+                    </div>
+                    <span className={['rounded-full px-2 py-1 text-[11px] font-semibold', chip.className].join(' ')}>
+                      {chip.label}
+                    </span>
+                  </div>
+
+                  {item.summary && (
+                    <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.summary}</p>
+                  )}
+
+                  <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+                    <span>{item.messageCount} 条对话</span>
+                    <span>{formatUpdatedAt(item.updatedAt)}</span>
+                  </div>
+
+                  <div className="mt-2 text-right text-xs font-semibold text-indigo-600">查看详情 ›</div>
+                </article>
+              )
+            })}
+          </>
+        )}
       </main>
     </div>
   )

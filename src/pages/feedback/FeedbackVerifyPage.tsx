@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
+import { sendEmailVerificationCode, verifyEmailCode } from '../../api/feedbackService'
 
 const CODE_LENGTH = 6
 const RESEND_SECONDS = 45
@@ -18,6 +19,9 @@ export function FeedbackVerifyPage() {
   const code = useMemo(() => digits.join(''), [digits])
   const canSubmit = /^\d{6}$/.test(code)
   const canResend = secondsLeft === 0
+
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [verifyError, setVerifyError] = useState<string | null>(null)
 
   useEffect(() => {
     const first = inputRefs.current[0]
@@ -77,17 +81,32 @@ export function FeedbackVerifyPage() {
     focusCell(Math.min(pasted.length, CODE_LENGTH - 1))
   }
 
-  function handleResend() {
+  async function handleResend() {
     if (!canResend) return
+    setVerifyError(null)
+    try {
+      await sendEmailVerificationCode(email)
+    } catch {
+      // 发送失败时不阻断 UI，用户可重试
+    }
     setDigits(Array(CODE_LENGTH).fill(''))
     setSecondsLeft(RESEND_SECONDS)
     focusCell(0)
   }
 
-  function handleConfirm() {
-    if (!canSubmit) return
-    // UI-only flow for now. Backend verification will be connected later.
-    navigate('/feedback/list')
+  async function handleConfirm() {
+    if (!canSubmit || isVerifying) return
+    setVerifyError(null)
+    setIsVerifying(true)
+    try {
+      // 验证 code，服务端颁发 token，verifyEmailCode 内部持久化到 localStorage
+      await verifyEmailCode(email, code)
+      // token 已由 verifyEmailCode 内部存入 localStorage，页面选传 email 仅用于展示
+      navigate('/feedback', { state: { email } })
+    } catch {
+      setVerifyError('验证码错误或已过期，请重新获取验证码')
+      setIsVerifying(false)
+    }
   }
 
   return (
@@ -152,11 +171,17 @@ export function FeedbackVerifyPage() {
           <button
             type="button"
             onClick={handleConfirm}
-            disabled={!canSubmit}
+            disabled={!canSubmit || isVerifying}
             className="mt-4 h-11 w-full rounded-xl bg-indigo-600 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(79,70,229,0.28)] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:shadow-none"
           >
-            确认并继续
+            {isVerifying ? '验证中...' : '验证并继续'}
           </button>
+
+          {verifyError && (
+            <p className="mt-2 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+              {verifyError}
+            </p>
+          )}
 
           <div className="mt-3 flex items-center justify-between text-xs">
             <span className="text-slate-500">未收到邮件？</span>

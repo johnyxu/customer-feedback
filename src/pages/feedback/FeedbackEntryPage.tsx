@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
+import { sendEmailVerificationCode } from '../../api/feedbackService'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -8,14 +9,27 @@ export function FeedbackEntryPage() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [anonymous, setAnonymous] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const trimmedEmail = email.trim()
   const emailValid = useMemo(() => emailRegex.test(trimmedEmail), [trimmedEmail])
 
-  function handleContinueWithEmail() {
-    if (!emailValid) return
-    // UI-only flow for now. Backend verification will be connected later.
-    navigate('/feedback/verify', { state: { email: trimmedEmail } })
+  async function handleContinueWithEmail() {
+    if (!emailValid || isLoading) return
+
+    setError(null)
+    setIsLoading(true)
+
+    try {
+      await sendEmailVerificationCode(trimmedEmail)
+      // 发送验证码成功，导航到验证页面
+      navigate('/feedback/verify', { state: { email: trimmedEmail } })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '发送验证码失败，请重试'
+      setError(errorMessage)
+      setIsLoading(false)
+    }
   }
 
   function handleContinueAnonymous() {
@@ -88,11 +102,17 @@ export function FeedbackEntryPage() {
           <button
             type="button"
             onClick={handleContinueWithEmail}
-            disabled={!emailValid}
+            disabled={!emailValid || isLoading}
             className="mt-4 h-11 w-full rounded-xl bg-indigo-600 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(79,70,229,0.28)] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:shadow-none"
           >
-            下一步：验证邮箱
+            {isLoading ? '发送中...' : '下一步：验证邮箱'}
           </button>
+
+          {error && (
+            <p className="mt-2 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+              {error}
+            </p>
+          )}
         </section>
 
         <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4">

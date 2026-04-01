@@ -1,132 +1,127 @@
-import { useMemo } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
-
-type FeedbackSender = 'customer' | 'admin'
-
-type FeedbackMessage = {
-  id: string
-  feedbackId: string
-  sender: FeedbackSender
-  senderId: string
-  content: string
-  isQuestion: boolean
-  inReplyToMessageId: string | null
-  createdAt: string
-  attachments: string[]
-}
-
-type FeedbackSummary = {
-  id: string
-  title: string
-  description: string
-  status: 'replied' | 'processing' | 'resolved'
-}
-
-const MOCK_SUMMARY: FeedbackSummary = {
-  id: '36fd8b8e-0658-4537-a031-44c9ab4eae9f',
-  title: 'iOS 端支付后页面卡住',
-  description: '支付成功后返回订单详情页，约 2-3 秒白屏并无响应，需强制重启 App。',
-  status: 'replied',
-}
-
-const MOCK_MESSAGES: FeedbackMessage[] = [
-  {
-    id: '0116a5d5-3ab5-4d9b-8fac-2ac3900321a7',
-    feedbackId: '36fd8b8e-0658-4537-a031-44c9ab4eae9f',
-    sender: 'customer',
-    senderId: 'user123',
-    content: '页面有报错',
-    isQuestion: true,
-    inReplyToMessageId: null,
-    createdAt: '2026-03-28T20:50:52.602Z',
-    attachments: [],
-  },
-  {
-    id: 'b248eeff-c15c-4819-b0a0-3c28315f8057',
-    feedbackId: '36fd8b8e-0658-4537-a031-44c9ab4eae9f',
-    sender: 'admin',
-    senderId: 'admin01',
-    content: '已收到，我们在排查',
-    isQuestion: false,
-    inReplyToMessageId: '0116a5d5-3ab5-4d9b-8fac-2ac3900321a7',
-    createdAt: '2026-03-28T21:00:34.025Z',
-    attachments: [],
-  },
-  {
-    id: 'a6379576-31ff-4134-9df8-fb0667ba5efc',
-    feedbackId: '36fd8b8e-0658-4537-a031-44c9ab4eae9f',
-    sender: 'customer',
-    senderId: 'user123',
-    content: '请问大概多久修复？',
-    isQuestion: true,
-    inReplyToMessageId: null,
-    createdAt: '2026-03-28T21:03:02.628Z',
-    attachments: [],
-  },
-]
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { LocaleSwitcher } from "../../components/ui/LocaleSwitcher";
+import {
+  getFeedbackThread,
+  submitFollowUp,
+  uploadFiles,
+  clearSessionToken,
+  type AttachmentPayload,
+  type FeedbackThread,
+  type FeedbackMessage,
+} from "../../api/feedbackService";
+import { UploadBox } from "./components/UploadBox";
 
 function formatTime(input: string): string {
-  const date = new Date(input)
-  if (Number.isNaN(date.getTime())) return input
-  return `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(
+  const date = new Date(input);
+  if (Number.isNaN(date.getTime())) return input;
+  return `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, "0")}:${String(
     date.getMinutes(),
-  ).padStart(2, '0')}`
+  ).padStart(2, "0")}`;
 }
 
-type TimelineItem = {
-  key: string
-  title: string
-  detail?: string
-  time: string
-  dotCls: string
+function statusBadge(status: string): { label: string; cls: string } {
+  if (status === "replied") return { label: "管理员已回复", cls: "bg-emerald-50 text-emerald-700" };
+  if (status === "processing") return { label: "处理中", cls: "bg-amber-50 text-amber-700" };
+  if (status === "resolved") return { label: "已解决", cls: "bg-slate-100 text-slate-700" };
+  return { label: "待处理", cls: "bg-blue-50 text-blue-600" };
 }
 
-function statusBadge(status: FeedbackSummary['status']): { label: string; cls: string } {
-  if (status === 'replied') return { label: '管理员已回复', cls: 'bg-emerald-50 text-emerald-700' }
-  if (status === 'processing') return { label: '处理中', cls: 'bg-amber-50 text-amber-700' }
-  return { label: '已解决', cls: 'bg-slate-100 text-slate-700' }
-}
+const TYPE_LABEL: Record<string, string> = {
+  bug: "问题反馈",
+  feature: "功能建议",
+  experience: "体验问题",
+  other: "其他",
+};
 
 export function FeedbackDetailPage() {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const state = location.state as { feedback?: FeedbackSummary; messages?: FeedbackMessage[] } | null
+  const navigate = useNavigate();
+  const { feedbackId: feedbackIdParam } = useParams<{ feedbackId: string }>();
+  const location = useLocation();
+  const state = location.state as {
+    feedback?: { id: string; title: string; status: string };
+  } | null;
 
-  const feedback = state?.feedback ?? MOCK_SUMMARY
-  const messages = useMemo(
-    () => [...(state?.messages ?? MOCK_MESSAGES)].sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt)),
-    [state?.messages],
-  )
+  const [thread, setThread] = useState<FeedbackThread | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const badge = statusBadge(feedback.status)
+  const [replyText, setReplyText] = useState("");
+  const [replyFiles, setReplyFiles] = useState<File[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
-  const firstCustomerMessage = messages.find(item => item.sender === 'customer')
-  const lastAdminMessage = [...messages].reverse().find(item => item.sender === 'admin')
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  const timeline = useMemo<TimelineItem[]>(() => {
-    return [
-      {
-        key: 'admin-replied',
-        title: '管理员回复：已定位问题',
-        detail: lastAdminMessage?.content ?? '建议先清理缓存并重试，修复将在后续版本发布。',
-        time: lastAdminMessage ? formatTime(lastAdminMessage.createdAt) : '今天 09:12',
-        dotCls: 'bg-emerald-500',
-      },
-      {
-        key: 'assigned',
-        title: '系统：反馈已分配到研发组',
-        time: '今天 08:43',
-        dotCls: 'bg-indigo-500',
-      },
-      {
-        key: 'created',
-        title: '你提交了反馈',
-        time: firstCustomerMessage ? formatTime(firstCustomerMessage.createdAt) : '今天 08:39',
-        dotCls: 'bg-slate-300',
-      },
-    ]
-  }, [firstCustomerMessage, lastAdminMessage])
+  const feedbackId = feedbackIdParam ?? state?.feedback?.id ?? '';
+
+  useEffect(() => {
+    if (!feedbackId) {
+      setError("缺少反馈 ID，请从列表页重新进入");
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    getFeedbackThread(feedbackId)
+      .then((data) => {
+        if (!cancelled) setThread(data);
+      })
+      .catch((err: Error) => {
+        if (cancelled) return;
+        if (err.message.includes("401")) {
+          clearSessionToken();
+          navigate("/");
+          return;
+        }
+        setError("加载失败，请稍后重试");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [feedbackId, navigate]);
+
+  // 新消息加载后滚动到底部
+  useEffect(() => {
+    if (!loading && thread) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [loading, thread]);
+
+  async function handleSubmitFollowUp() {
+    if (!replyText.trim() || submitting) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    setUploadProgress(0);
+    try {
+      let attachments: AttachmentPayload[] = [];
+      if (replyFiles.length > 0) {
+        attachments = await uploadFiles(replyFiles, (_idx, loaded, total) => {
+          if (total > 0) setUploadProgress(Math.round((loaded / total) * 100));
+        });
+      }
+      await submitFollowUp(feedbackId, replyText.trim(), attachments);
+      const updated = await getFeedbackThread(feedbackId);
+      setThread(updated);
+      setReplyText("");
+      setReplyFiles([]);
+      setUploadProgress(0);
+      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+    } catch {
+      setSubmitError("发送失败，请稍后重试");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const messages: FeedbackMessage[] = thread
+    ? [...thread.messages].sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt))
+    : [];
+
+  const badge = thread ? statusBadge(thread.status) : null;
 
   return (
     <div className="min-h-screen bg-[#f5f5f7] font-sans text-slate-900">
@@ -134,7 +129,7 @@ export function FeedbackDetailPage() {
         <div className="flex items-center justify-between">
           <button
             type="button"
-            onClick={() => navigate('/feedback/list')}
+            onClick={() => navigate("/feedback/list")}
             className="h-9 w-9 rounded-full bg-slate-100 text-slate-600"
             aria-label="back"
           >
@@ -145,74 +140,212 @@ export function FeedbackDetailPage() {
         </div>
       </header>
 
-      <main className="space-y-3 px-4 py-4 pb-28">
-        <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-slate-500">#{feedback.id}</p>
-              <h2 className="mt-2 text-sm font-semibold">{feedback.title}</h2>
-            </div>
-            <span className={['rounded-full px-2 py-1 text-[11px] font-semibold', badge.cls].join(' ')}>
-              {badge.label}
-            </span>
-          </div>
-          <p className="mt-2 text-sm text-slate-600">{feedback.description}</p>
-          <img
-            src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=1200&q=80"
-            alt="issue screenshot"
-            className="mt-3 h-36 w-full rounded-xl object-cover"
-          />
-        </section>
+      <main className="space-y-3 px-4 py-4">
+        {loading && <p className="py-10 text-center text-sm text-slate-400">加载中…</p>}
 
-        <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-          <h3 className="text-sm font-bold">处理进展</h3>
-          <ol className="mt-3 space-y-3 text-sm">
-            {timeline.map(item => (
-              <li key={item.key} className="flex gap-3">
-                <span className={['mt-1 h-2.5 w-2.5 rounded-full', item.dotCls].join(' ')} />
-                <div>
-                  <p className="font-medium">{item.title}</p>
-                  {item.detail && <p className="mt-1 text-xs text-slate-500">{item.detail}</p>}
-                  <p className="mt-1 text-[11px] text-slate-400">{item.time}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
+        {!loading && error && <p className="py-10 text-center text-sm text-red-500">{error}</p>}
 
-        <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-          <h3 className="text-sm font-bold">管理员回复</h3>
-          <div className="mt-3 rounded-xl border border-indigo-100 bg-indigo-50 p-3">
-            <div className="mb-2 flex items-center gap-2">
-              <img
-                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80"
-                alt="admin"
-                className="h-8 w-8 rounded-full object-cover"
+        {!loading && !error && thread && (
+          <>
+            {/* 跟进回复输入框（卡片内容上方） */}
+            <section className="rounded-2xl border border-indigo-100 bg-white p-4 shadow-sm">
+              <p className="mb-2 text-xs font-semibold text-slate-500">继续跟进回复</p>
+              {submitError && <p className="mb-1 text-xs text-red-500">{submitError}</p>}
+              <textarea
+                rows={2}
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="输入补充说明或追问…"
+                className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none transition-all focus:border-indigo-500 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.12)]"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSubmitFollowUp();
+                }}
               />
-              <div>
-                <p className="text-sm font-semibold">小竹客服 · Lily</p>
-                <p className="text-[11px] text-slate-500">
-                  {lastAdminMessage ? formatTime(lastAdminMessage.createdAt) : '今天 09:12'}
-                </p>
+              <div className="mt-2">
+                <UploadBox files={replyFiles} onFilesChange={setReplyFiles} />
               </div>
-            </div>
-            <p className="text-sm leading-relaxed text-slate-700">
-              {lastAdminMessage?.content ??
-                '我们已经复现问题，临时建议你在“设置-通用-清理缓存”后重试。你是否方便补充一下系统版本和网络环境，方便我们精准回归？'}
-            </p>
-          </div>
-        </section>
-      </main>
+              {submitting && uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="mt-2">
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                    <div
+                      className="h-full rounded-full bg-indigo-500 transition-all"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                  <p className="mt-1 text-right text-[10px] text-slate-400">上传中 {uploadProgress}%</p>
+                </div>
+              )}
+              <div className="mt-3 flex items-center justify-between">
+                <p className="text-[10px] text-slate-400">⌘ + Enter 快速发送</p>
+                <button
+                  type="button"
+                  disabled={!replyText.trim() || submitting}
+                  onClick={handleSubmitFollowUp}
+                  className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow disabled:opacity-40"
+                >
+                  {submitting ? "发送中…" : "发送"}
+                </button>
+              </div>
+            </section>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#f5f5f7] via-[rgba(245,245,247,0.95)] to-transparent px-4 pb-6 pt-2">
-        <button
-          type="button"
-          onClick={() => navigate('/feedback')}
-          className="h-12 w-full rounded-xl bg-indigo-600 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30"
-        >
-          继续跟进回复
-        </button>
-      </div>
+            {/* 反馈概要卡片（含首条内容 + 附件） */}
+            {(() => {
+              const firstMsg = messages.find((m) => m.sender === "customer");
+              const firstImages =
+                firstMsg?.attachments.filter((a) => /\.(png|jpe?g|gif|webp)$/i.test(a.filename)) ??
+                [];
+              return (
+                <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs text-slate-500">#{thread.id}</p>
+                      <p className="mt-0.5 text-xs text-slate-400">
+                        {TYPE_LABEL[thread.type] ?? thread.type} · ⭐ {thread.rating}
+                      </p>
+                    </div>
+                    {badge && (
+                      <span
+                        className={[
+                          "shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold",
+                          badge.cls,
+                        ].join(" ")}
+                      >
+                        {badge.label}
+                      </span>
+                    )}
+                  </div>
+                  {firstMsg && (
+                    <p className="mt-2 text-sm leading-relaxed text-slate-700">
+                      {firstMsg.content}
+                    </p>
+                  )}
+                  {firstImages.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {firstImages.map((att) => (
+                        <a key={att.id} href={att.url} target="_blank" rel="noreferrer">
+                          <img
+                            src={att.url}
+                            alt={att.filename}
+                            className="h-36 w-full rounded-xl object-cover"
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              );
+            })()}
+
+            {/* 处理进展时间线 */}
+            <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+              <h3 className="text-sm font-bold">处理进展</h3>
+              <ol className="mt-3 space-y-3 text-sm">
+                {(() => {
+                  const adminMsgs = messages.filter((m) => m.sender === "admin");
+                  const lastAdmin = adminMsgs[adminMsgs.length - 1];
+                  const firstCustomer = messages.find((m) => m.sender === "customer");
+                  type Item = {
+                    key: string;
+                    title: string;
+                    detail?: string;
+                    time: string;
+                    dotCls: string;
+                  };
+                  const items: Item[] = [];
+                  if (lastAdmin) {
+                    items.push({
+                      key: "admin-replied",
+                      title: "管理员已回复",
+                      detail: lastAdmin.content,
+                      time: formatTime(lastAdmin.createdAt),
+                      dotCls: "bg-emerald-500",
+                    });
+                  }
+                  if (adminMsgs.length > 0) {
+                    items.push({
+                      key: "assigned",
+                      title: "系统：反馈已分配给客服",
+                      time: formatTime(adminMsgs[0].createdAt),
+                      dotCls: "bg-indigo-500",
+                    });
+                  }
+                  if (firstCustomer) {
+                    items.push({
+                      key: "created",
+                      title: "你提交了反馈",
+                      time: formatTime(firstCustomer.createdAt),
+                      dotCls: "bg-slate-300",
+                    });
+                  }
+                  return items.map((item) => (
+                    <li key={item.key} className="flex gap-3">
+                      <span
+                        className={["mt-1 h-2.5 w-2.5 shrink-0 rounded-full", item.dotCls].join(
+                          " ",
+                        )}
+                      />
+                      <div>
+                        <p className="font-medium">{item.title}</p>
+                        {item.detail && (
+                          <p className="mt-1 text-xs text-slate-500">{item.detail}</p>
+                        )}
+                        <p className="mt-1 text-[11px] text-slate-400">{item.time}</p>
+                      </div>
+                    </li>
+                  ));
+                })()}
+              </ol>
+            </section>
+
+            {/* 管理员回复卡片（最新一条） */}
+            {(() => {
+              const lastAdmin = [...messages].reverse().find((m) => m.sender === "admin");
+              if (!lastAdmin) return null;
+              return (
+                <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                  <h3 className="text-sm font-bold">管理员回复</h3>
+                  <div className="mt-3 rounded-xl border border-indigo-100 bg-indigo-50 p-3">
+                    <div className="mb-2 flex items-center gap-2">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white">
+                        客
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">小竹客服</p>
+                        <p className="text-[11px] text-slate-500">
+                          {formatTime(lastAdmin.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-sm leading-relaxed text-slate-700">{lastAdmin.content}</p>
+                  </div>
+                </section>
+              );
+            })()}
+
+            {/* 客户追问记录（第2条消息起） */}
+            {messages.filter((m) => m.sender === "customer").length > 1 && (
+              <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                <h3 className="text-sm font-bold">你的追问</h3>
+                <div className="mt-3 space-y-3">
+                  {messages
+                    .filter((m) => m.sender === "customer")
+                    .slice(1)
+                    .map((msg) => (
+                      <div key={msg.id} className="rounded-xl bg-slate-50 p-3">
+                        <p className="text-sm leading-relaxed text-slate-700">{msg.content}</p>
+                        <p className="mt-1 text-[11px] text-slate-400">
+                          {formatTime(msg.createdAt)}
+                        </p>
+                      </div>
+                    ))}
+                </div>
+              </section>
+            )}
+
+            <div ref={bottomRef} />
+          </>
+        )}
+      </main>
     </div>
-  )
+  );
 }

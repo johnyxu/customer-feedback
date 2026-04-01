@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card } from '../../components/ui/Card'
 import { SectionHeader } from '../../components/ui/SectionHeader'
 import { NavBar } from '../../components/ui/NavBar'
@@ -7,18 +8,7 @@ import { TypeChipGroup, type FeedbackTypeId } from './components/TypeChipGroup'
 import { StarRating } from './components/StarRating'
 import { UploadBox } from './components/UploadBox'
 import { useI18n } from '../../i18n/useI18n'
-
-const API_BASE_URL =
-  (import.meta.env.VITE_FEEDBACK_API_BASE_URL ?? import.meta.env.VITE_API_BASE_URL ?? '').trim()
-const API_KEY = (import.meta.env.VITE_API_KEY ?? '').trim()
-const SIGNED_UPLOAD_PATH = (import.meta.env.VITE_SIGNED_UPLOAD_PATH ?? '/api/storage/signed-upload-url').trim()
-const FEEDBACK_SUBMIT_PATH = (import.meta.env.VITE_FEEDBACK_SUBMIT_PATH ?? '/api/feedback').trim()
-
-type SignedUploadResponse = {
-  uploadUrl: string
-  fileUrl: string
-  requiredHeaders?: Record<string, string>
-}
+import { uploadFiles, submitFeedback, submitAnonymousFeedback, getSessionToken, clearSessionToken } from '../../api/feedbackService'
 
 type AttachmentPayload = {
   url: string
@@ -31,91 +21,16 @@ const inputCls =
   'w-full border-[1.5px] border-gray-200 rounded-xl px-3 py-[11px] text-sm text-gray-900 bg-white outline-none box-border transition-all focus:border-violet-600 focus:shadow-[0_0_0_3px_rgba(124,58,237,0.12)]'
 
 export function FeedbackPage() {
+  const navigate = useNavigate()
+
   const { locale, t } = useI18n()
   const [feedbackType, setFeedbackType] = useState<FeedbackTypeId>('bug')
   const [content, setContent] = useState('')
   const [rating, setRating] = useState(5)
-  const [contact, setContact] = useState('')
-  const [allowContact, setAllowContact] = useState(true)
   const [files, setFiles] = useState<File[]>([])
   const [submitted, setSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
-
-  function buildApiUrl(path: string): string {
-    if (/^https?:\/\//.test(path)) return path
-    const normalizedPath = path.startsWith('/') ? path : `/${path}`
-    if (!API_BASE_URL) return normalizedPath
-    const base = API_BASE_URL.replace(/\/$/, '')
-    return `${base}${normalizedPath}`
-  }
-
-  async function getSignedUploadUrl(file: File): Promise<SignedUploadResponse> {
-    const response = await fetch(buildApiUrl(SIGNED_UPLOAD_PATH), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
-      },
-      body: JSON.stringify({
-        filename: file.name,
-        contentType: file.type || 'application/octet-stream',
-        size: file.size,
-      }),
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to get signed url: ${response.status}`)
-    }
-
-    return (await response.json()) as SignedUploadResponse
-  }
-
-  async function uploadFileToCloudStorage(
-    file: File,
-    onProgress?: (loaded: number, total: number) => void,
-  ): Promise<AttachmentPayload> {
-    const signed = await getSignedUploadUrl(file)
-
-    await new Promise<void>((resolve, reject) => {
-      const xhr = new XMLHttpRequest()
-      xhr.open('PUT', signed.uploadUrl, true)
-      xhr.timeout = 10 * 60 * 1000
-
-      const headers = {
-        'Content-Type': file.type || 'application/octet-stream',
-        ...(signed.requiredHeaders ?? {}),
-      }
-
-      for (const [key, value] of Object.entries(headers)) {
-        xhr.setRequestHeader(key, value)
-      }
-
-      xhr.upload.onprogress = event => {
-        if (!event.lengthComputable) return
-        onProgress?.(event.loaded, event.total)
-      }
-
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          onProgress?.(file.size, file.size)
-          resolve()
-          return
-        }
-        reject(new Error(`Upload failed: ${xhr.status}`))
-      }
-
-      xhr.onerror = () => reject(new Error('Upload failed: network error'))
-      xhr.ontimeout = () => reject(new Error('Upload failed: timeout'))
-      xhr.send(file)
-    })
-
-    return {
-      url: signed.fileUrl,
-      filename: file.name,
-      size: file.size,
-    }
-  }
 
   async function handleSubmit() {
     if (!content.trim() || isSubmitting) return
@@ -123,51 +38,48 @@ export function FeedbackPage() {
     setIsSubmitting(true)
     setUploadProgress(0)
     try {
-      const totalBytes = files.reduce((sum, file) => sum + file.size, 0)
-      let uploadedBytesBeforeCurrent = 0
-      const attachments: AttachmentPayload[] = []
+      let attachments: AttachmentPayload[] = []
 
-      for (const file of files) {
-        const attachment = await uploadFileToCloudStorage(file, (loaded, total) => {
-          if (totalBytes === 0) return
-          const currentFileLoaded = Math.min(loaded, total)
-          const overall = Math.round(((uploadedBytesBeforeCurrent + currentFileLoaded) / totalBytes) * 100)
-          setUploadProgress(Math.max(0, Math.min(100, overall)))
+      if (files.length > 0) {
+        attachments = await uploadFiles(files, (_idx, loaded, total) => {
+          if (total === 0) return
+          setUploadProgress(Math.round((loaded / total) * 100))
         })
-
-        attachments.push(attachment)
-        uploadedBytesBeforeCurrent += file.size
-        if (totalBytes > 0) {
-          const overall = Math.round((uploadedBytesBeforeCurrent / totalBytes) * 100)
-          setUploadProgress(Math.max(0, Math.min(100, overall)))
-        }
       }
 
-      const submitResponse = await fetch(buildApiUrl(FEEDBACK_SUBMIT_PATH), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
-        },
-        body: JSON.stringify({
-          type: feedbackType,
-          content: content.trim(),
-          rating,
-          contact,
-          allowContact,
-          locale,
-          attachments,
-        }),
-      })
+      const feedbackData = {
+        type: feedbackType,
+        content: content.trim(),
+        rating,
+        locale,
+        attachments,
+      }
 
-      if (!submitResponse.ok) {
-        throw new Error(`Submit failed: ${submitResponse.status}`)
+      if (getSessionToken()) {
+        // 邮箱流程：token 已存入 sessionStorage，buildHeaders 会自动携带 Authorization
+        try {
+          await submitFeedback(feedbackData)
+        } catch (err) {
+          // token 已过期或失效，清除后降级为匿名提交
+          if (err instanceof Error && err.message.includes('401')) {
+            clearSessionToken()
+            await submitAnonymousFeedback(feedbackData)
+          } else {
+            throw err
+          }
+        }
+      } else {
+        // 匿名流程
+        await submitAnonymousFeedback(feedbackData)
       }
 
       setUploadProgress(100)
       setSubmitted(true)
       setFiles([])
-      setTimeout(() => setSubmitted(false), 3000)
+      setTimeout(() => {
+        setSubmitted(false)
+        navigate('/feedback/list')
+      }, 2000)
     } catch (error) {
       console.error('Submit feedback failed:', error)
     } finally {
@@ -175,11 +87,6 @@ export function FeedbackPage() {
       setIsSubmitting(false)
     }
   }
-
-  const contactChannels = [
-    { label: t('channel.email.label'), value: t('channel.email.value') },
-    { label: t('channel.time.label'), value: t('channel.time.value') },
-  ]
 
   return (
     <div className="min-h-screen bg-[#f5f5f7] font-sans">
@@ -241,41 +148,6 @@ export function FeedbackPage() {
           <UploadBox files={files} onFilesChange={setFiles} />
         </Card>
 
-        <Card>
-          <SectionHeader icon="@" title={t('section.contact')} />
-          <label className="text-[13px] font-semibold text-gray-700 block mb-2">{t('contact.inputLabel')}</label>
-          <input
-            type="text"
-            value={contact}
-            onChange={e => setContact(e.target.value)}
-            placeholder={t('contact.placeholder')}
-            className={inputCls}
-          />
-          <div className="flex gap-2 items-start mt-2.5">
-            <input
-              id="allow-contact"
-              type="checkbox"
-              checked={allowContact}
-              onChange={e => setAllowContact(e.target.checked)}
-              className="mt-0.5 accent-violet-600 shrink-0"
-            />
-            <label htmlFor="allow-contact" className="text-xs text-gray-500 leading-relaxed cursor-pointer">
-              {t('contact.allow')}
-            </label>
-          </div>
-        </Card>
-
-        <Card>
-          <SectionHeader icon="🎧" title={t('section.otherChannels')} />
-          <div className="grid grid-cols-2 gap-2.5">
-            {contactChannels.map(ch => (
-              <div key={ch.label} className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                <p className="text-xs text-gray-500 m-0 mb-1">{ch.label}</p>
-                <p className="text-[13px] font-semibold text-gray-900 m-0 break-words">{ch.value}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
       </div>
 
       {/* Sticky submit button */}
