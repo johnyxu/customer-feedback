@@ -26,4 +26,5 @@ dist-ssr
 *.sln
 *.sw?
 
-ui
+# UI prototype HTML files (root /ui/ directory only)
+/ui
