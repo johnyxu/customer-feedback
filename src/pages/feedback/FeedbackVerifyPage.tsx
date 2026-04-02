@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
+import { BackButton } from '../../components/ui/BackButton'
 import { sendEmailVerificationCode, verifyEmailCode } from '../../api/feedbackService'
 
 const CODE_LENGTH = 6
@@ -110,14 +111,7 @@ export function FeedbackVerifyPage() {
     <div className="min-h-screen bg-[#f5f5f7] font-sans text-gray-900">
       <header className="border-b border-slate-200 bg-white px-4 pb-2 pt-3">
         <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => navigate('/feedback/start')}
-            className="h-9 w-9 rounded-full bg-slate-100 text-slate-600"
-            aria-label="back"
-          >
-            ‹
-          </button>
+          <BackButton to="/feedback/start" />
           <h1 className="font-bold">验证邮箱</h1>
           <LocaleSwitcher />
         </div>

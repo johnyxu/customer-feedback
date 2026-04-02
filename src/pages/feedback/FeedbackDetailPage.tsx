@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
-import { getFeedbackThread, clearSessionToken, type FeedbackThread, type FeedbackMessage } from '../../api/feedbackService'
+import {
+  getFeedbackThread,
+  clearSessionToken,
+  type FeedbackThread,
+  type FeedbackMessage,
+} from '../../api/feedbackService'
+import { BackButton } from '../../components/ui/BackButton'
 import { FollowUpBox } from './components/FollowUpBox'
 import { MessageCard } from './components/MessageCard'
 
@@ -60,14 +66,7 @@ export function FeedbackDetailPage() {
     <div className="min-h-screen bg-[#f5f5f7] font-sans text-slate-900">
       <header className="border-b border-slate-200 bg-white px-4 pb-2 pt-3">
         <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => navigate('/feedback/list')}
-            className="h-9 w-9 rounded-full bg-slate-100 text-slate-600"
-            aria-label="back"
-          >
-            ‹
-          </button>
+          <BackButton to="/feedback/list" />
           <h1 className="font-bold">反馈详情</h1>
           <LocaleSwitcher />
         </div>

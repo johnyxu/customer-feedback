@@ -4,6 +4,7 @@ import { Card } from '../../components/ui/Card'
 import { SectionHeader } from '../../components/ui/SectionHeader'
 import { NavBar } from '../../components/ui/NavBar'
 import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
+import { BackButton } from '../../components/ui/BackButton'
 import { TypeChipGroup, type FeedbackTypeId } from './components/TypeChipGroup'
 import { StarRating } from './components/StarRating'
 import { UploadBox } from './components/UploadBox'
@@ -93,20 +94,7 @@ export function FeedbackPage() {
     <div className="min-h-screen bg-[#f5f5f7] font-sans">
       {/* Gradient header: nav + hero blended */}
       <div className="bg-linear-to-br from-[#667eea] to-[#764ba2] px-4 pb-5">
-        <NavBar
-          title={t('nav.title')}
-          left={
-            <button
-              type="button"
-              onClick={() => history.back()}
-              aria-label={t('nav.back')}
-              className="text-white text-2xl leading-none opacity-90 cursor-pointer border-0 bg-transparent p-0"
-            >
-              ‹
-            </button>
-          }
-          right={<LocaleSwitcher variant="dark" />}
-        />
+        <NavBar title={t('nav.title')} left={<BackButton variant="dark" />} right={<LocaleSwitcher variant="dark" />} />
         <div className="mt-3">
           <h1 className="text-xl font-bold text-white m-0 mb-1.5">{t('hero.title')}</h1>
           <p className="text-[13px] leading-relaxed text-white/90 m-0">{t('hero.description')}</p>
