@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
-import {
-  listFeedback,
-  clearSessionToken,
-  type FeedbackListItem,
-  type FeedbackStatus,
-} from '../../api/feedbackService'
+import { listFeedback, clearSessionToken, type FeedbackListItem, type FeedbackStatus } from '../../api/feedbackService'
 
 function formatUpdatedAt(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
@@ -89,8 +84,7 @@ export function FeedbackListPage() {
   const repliedCount = useMemo(
     () =>
       feedbacks.filter(
-        item =>
-          item.status === 'replied' || item.status === 'resolved' || item.latestAdminReply !== null,
+        item => item.status === 'replied' || item.status === 'resolved' || item.latestAdminReply !== null,
       ).length,
     [feedbacks],
   )
@@ -119,9 +113,7 @@ export function FeedbackListPage() {
           <>
             <section className="rounded-2xl bg-gradient-to-br from-[#2563eb] to-[#4f46e5] p-4 text-white">
               <p className="text-xs text-white/80">反馈处理概览</p>
-              <p className="mt-1 text-2xl font-black">
-                {Math.round((repliedCount / feedbacks.length) * 100)}%
-              </p>
+              <p className="mt-1 text-2xl font-black">{Math.round((repliedCount / feedbacks.length) * 100)}%</p>
               <p className="mt-1 text-xs text-white/80">
                 {repliedCount}/{feedbacks.length} 条已得到回复或解决
               </p>
@@ -144,24 +136,19 @@ export function FeedbackListPage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-xs font-medium text-slate-700">
-                        {TYPE_LABEL[item.type] ?? item.type}
-                      </p>
+                      <p className="text-xs font-medium text-slate-700">{TYPE_LABEL[item.type] ?? item.type}</p>
                     </div>
                     <span
-                      className={[
-                        'shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold',
-                        chip.className,
-                      ].join(' ')}
+                      className={['shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold', chip.className].join(
+                        ' ',
+                      )}
                     >
                       {chip.label}
                     </span>
                   </div>
 
                   {item.firstCustomerMessage?.content && (
-                    <p className="mt-1.5 truncate text-sm text-slate-600">
-                      {item.firstCustomerMessage.content}
-                    </p>
+                    <p className="mt-1.5 truncate text-sm text-slate-600">{item.firstCustomerMessage.content}</p>
                   )}
 
                   <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
@@ -169,9 +156,7 @@ export function FeedbackListPage() {
                     <span>{formatUpdatedAt(item.updatedAt)}</span>
                   </div>
 
-                  <div className="mt-2 text-right text-xs font-semibold text-indigo-600">
-                    查看详情 ›
-                  </div>
+                  <div className="mt-2 text-right text-xs font-semibold text-indigo-600">查看详情 ›</div>
                 </article>
               )
             })}

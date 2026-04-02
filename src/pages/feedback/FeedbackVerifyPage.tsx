@@ -63,10 +63,7 @@ export function FeedbackVerifyPage() {
 
   function handlePaste(event: React.ClipboardEvent<HTMLInputElement>) {
     event.preventDefault()
-    const pasted = event.clipboardData
-      .getData('text')
-      .replace(/\D/g, '')
-      .slice(0, CODE_LENGTH)
+    const pasted = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, CODE_LENGTH)
 
     if (!pasted) return
 
@@ -189,7 +186,9 @@ export function FeedbackVerifyPage() {
               type="button"
               onClick={handleResend}
               disabled={!canResend}
-              className={canResend ? 'font-semibold text-indigo-600' : 'cursor-not-allowed font-semibold text-slate-400'}
+              className={
+                canResend ? 'font-semibold text-indigo-600' : 'cursor-not-allowed font-semibold text-slate-400'
+              }
             >
               {canResend ? '重新发送验证码' : `${secondsLeft}s 后重新发送`}
             </button>

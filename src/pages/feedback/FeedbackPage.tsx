@@ -8,7 +8,13 @@ import { TypeChipGroup, type FeedbackTypeId } from './components/TypeChipGroup'
 import { StarRating } from './components/StarRating'
 import { UploadBox } from './components/UploadBox'
 import { useI18n } from '../../i18n/useI18n'
-import { uploadFiles, submitFeedback, submitAnonymousFeedback, getSessionToken, clearSessionToken } from '../../api/feedbackService'
+import {
+  uploadFiles,
+  submitFeedback,
+  submitAnonymousFeedback,
+  getSessionToken,
+  clearSessionToken,
+} from '../../api/feedbackService'
 
 type AttachmentPayload = {
   url: string
@@ -108,9 +114,7 @@ export function FeedbackPage() {
         />
         <div className="mt-3">
           <h1 className="text-xl font-bold text-white m-0 mb-1.5">{t('hero.title')}</h1>
-          <p className="text-[13px] leading-relaxed text-white/90 m-0">
-            {t('hero.description')}
-          </p>
+          <p className="text-[13px] leading-relaxed text-white/90 m-0">{t('hero.description')}</p>
           <div className="mt-3 inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-[5px] text-xs text-white font-semibold">
             ⚡ {t('hero.sla')}
           </div>
@@ -126,9 +130,7 @@ export function FeedbackPage() {
 
         <Card>
           <SectionHeader icon="✏" title={t('section.detail')} />
-          <label className="text-[13px] font-semibold text-gray-700 block mb-2">
-            {t('detail.label')}
-          </label>
+          <label className="text-[13px] font-semibold text-gray-700 block mb-2">{t('detail.label')}</label>
           <textarea
             value={content}
             onChange={e => setContent(e.target.value)}
@@ -147,7 +149,6 @@ export function FeedbackPage() {
           <SectionHeader icon="📎" title={t('section.attachments')} />
           <UploadBox files={files} onFilesChange={setFiles} />
         </Card>
-
       </div>
 
       {/* Sticky submit button */}
@@ -169,7 +170,6 @@ export function FeedbackPage() {
           <span>{t('submit.success')}</span>
         </div>
       )}
-
     </div>
   )
 }

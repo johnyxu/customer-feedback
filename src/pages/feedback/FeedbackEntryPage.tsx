@@ -85,11 +85,7 @@ export function FeedbackEntryPage() {
           <p
             className={[
               'mt-1 text-xs',
-              trimmedEmail.length === 0
-                ? 'text-gray-400'
-                : emailValid
-                  ? 'text-emerald-600'
-                  : 'text-rose-600',
+              trimmedEmail.length === 0 ? 'text-gray-400' : emailValid ? 'text-emerald-600' : 'text-rose-600',
             ].join(' ')}
           >
             {trimmedEmail.length === 0
@@ -109,9 +105,7 @@ export function FeedbackEntryPage() {
           </button>
 
           {error && (
-            <p className="mt-2 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-600">
-              {error}
-            </p>
+            <p className="mt-2 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-600">{error}</p>
           )}
         </section>
 

@@ -111,7 +111,8 @@ export const messages: Record<Locale, Record<string, string>> = {
     'locale.zh-Hant': 'Traditional Chinese',
     'locale.en': 'English',
     'hero.title': 'Tell us what you think',
-    'hero.description': 'Whether it is a feature idea, UX issue, or bug report, we read every message and keep improving the product.',
+    'hero.description':
+      'Whether it is a feature idea, UX issue, or bug report, we read every message and keep improving the product.',
     'hero.sla': 'We usually reply within 1-3 business days',
 
     'section.feedbackType': 'Feedback Type',
@@ -127,7 +128,8 @@ export const messages: Record<Locale, Record<string, string>> = {
     'feedback.type.other': 'Other',
 
     'detail.label': 'Please describe your issue or suggestion in detail',
-    'detail.placeholder': 'Example: The chart briefly flickers when switching months on the statistics page. It would be great to optimize this transition.',
+    'detail.placeholder':
+      'Example: The chart briefly flickers when switching months on the statistics page. It would be great to optimize this transition.',
     'detail.tip': 'Helpful info: where it happened, steps to reproduce, and expected result.',
 
     'rating.1': 'Current rating: 1 (Very Dissatisfied)',
@@ -141,7 +143,8 @@ export const messages: Record<Locale, Record<string, string>> = {
 
     'contact.inputLabel': 'Email or WeChat ID',
     'contact.placeholder': 'Leave your contact so we can follow up on your feedback',
-    'contact.allow': 'I agree that support may contact me using the information above only for this feedback case and not for marketing.',
+    'contact.allow':
+      'I agree that support may contact me using the information above only for this feedback case and not for marketing.',
 
     'channel.email.label': 'Email Support',
     'channel.email.value': 'support@xiaozhu.app',

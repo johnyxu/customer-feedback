@@ -224,10 +224,7 @@ export async function sendEmailVerificationCode(email: string): Promise<{ succes
  * ⚠️  需要后端新增此接口，返回 { sessionToken: string }
  * 验证通过后 token 存入 sessionStorage，后续请求自动携带。
  */
-export async function verifyEmailCode(
-  email: string,
-  code: string,
-): Promise<AuthData> {
+export async function verifyEmailCode(email: string, code: string): Promise<AuthData> {
   const response = await fetch(buildApiUrl(FEEDBACK_EMAIL_VERIFY_CODE_PATH), {
     method: 'POST',
     headers: buildHeaders(),

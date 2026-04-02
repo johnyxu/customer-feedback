@@ -15,6 +15,4 @@ const app = (
   </I18nProvider>
 )
 
-createRoot(document.getElementById('root')!).render(
-  STRICT_MODE ? <StrictMode>{app}</StrictMode> : app,
-)
+createRoot(document.getElementById('root')!).render(STRICT_MODE ? <StrictMode>{app}</StrictMode> : app)
