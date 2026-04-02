@@ -118,7 +118,7 @@ export function FeedbackDetailPage() {
   }
 
   const messages: FeedbackMessage[] = thread
-    ? [...thread.messages].sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt))
+    ? [...thread.messages].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
     : [];
 
   const badge = thread ? statusBadge(thread.status) : null;
@@ -147,7 +147,7 @@ export function FeedbackDetailPage() {
 
         {!loading && !error && thread && (
           <>
-            {/* 跟进回复输入框（卡片内容上方） */}
+            {/* 跟进回复输入框 */}
             <section className="rounded-2xl border border-indigo-100 bg-white p-4 shadow-sm">
               <p className="mb-2 text-xs font-semibold text-slate-500">继续跟进回复</p>
               {submitError && <p className="mb-1 text-xs text-red-500">{submitError}</p>}
@@ -188,159 +188,98 @@ export function FeedbackDetailPage() {
               </div>
             </section>
 
-            {/* 反馈概要卡片（含首条内容 + 附件） */}
-            {(() => {
-              const firstMsg = messages.find((m) => m.sender === "customer");
-              const firstImages =
-                firstMsg?.attachments.filter((a) => /\.(png|jpe?g|gif|webp)$/i.test(a.filename)) ??
-                [];
+            {/* 消息列表（倒序，最新在上） */}
+            {messages.map((msg, idx) => {
+              const isCustomer = msg.sender === "customer";
+              const isFirst = idx === messages.length - 1; // 时间最早的一条（倒序排列时最后一项）
+              const images = msg.attachments.filter((a) =>
+                /\.(png|jpe?g|gif|webp)$/i.test(a.filename),
+              );
+              const files = msg.attachments.filter(
+                (a) => !/\.(png|jpe?g|gif|webp)$/i.test(a.filename),
+              );
+
               return (
-                <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="text-xs text-slate-500">#{thread.id}</p>
-                      <p className="mt-0.5 text-xs text-slate-400">
-                        {TYPE_LABEL[thread.type] ?? thread.type} · ⭐ {thread.rating}
-                      </p>
-                    </div>
-                    {badge && (
-                      <span
+                <section
+                  key={msg.id}
+                  className={[
+                    "rounded-2xl border bg-white p-4 shadow-sm",
+                    isCustomer ? "border-slate-100" : "border-indigo-100",
+                  ].join(" ")}
+                >
+                  {/* 卡片头部：发送者 + 时间 + 首条状态 badge */}
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <div
                         className={[
-                          "shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold",
-                          badge.cls,
+                          "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white",
+                          isCustomer ? "bg-indigo-500" : "bg-emerald-500",
                         ].join(" ")}
                       >
-                        {badge.label}
-                      </span>
+                        {isCustomer ? "我" : "客"}
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-700">
+                          {isCustomer ? "我" : "小竹客服"}
+                        </p>
+                        <p className="text-[10px] text-slate-400">{formatTime(msg.createdAt)}</p>
+                      </div>
+                    </div>
+                    {/* 首条消息显示反馈类型 + 状态 */}
+                    {badge && (
+                      <div className="flex items-center gap-1.5">
+                        {isFirst && <span className="text-[11px] text-slate-400">
+                          {TYPE_LABEL[thread.type] ?? thread.type}
+                        </span>}
+                        <span
+                          className={[
+                            "shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                            badge.cls,
+                          ].join(" ")}
+                        >
+                          {badge.label}
+                        </span>
+                      </div>
                     )}
                   </div>
-                  {firstMsg && (
-                    <p className="mt-2 text-sm leading-relaxed text-slate-700">
-                      {firstMsg.content}
-                    </p>
-                  )}
-                  {firstImages.length > 0 && (
+
+                  {/* 消息内容 */}
+                  <p className="text-sm leading-relaxed text-slate-800">{msg.content}</p>
+
+                  {/* 图片附件 */}
+                  {images.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {firstImages.map((att) => (
-                        <a key={att.id} href={att.url} target="_blank" rel="noreferrer">
+                      {images.map((att) => (
+                        <a key={att.id} href={att.url} target="_blank" rel="noreferrer" className="block">
                           <img
                             src={att.url}
                             alt={att.filename}
-                            className="h-36 w-full rounded-xl object-cover"
+                            className="h-32 w-32 rounded-xl object-cover border border-slate-100"
                           />
+                        </a>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* 文件附件 */}
+                  {files.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {files.map((att) => (
+                        <a
+                          key={att.id}
+                          href={att.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-1 rounded-lg bg-slate-50 px-2 py-1 text-[11px] text-indigo-600 underline"
+                        >
+                          📎 {att.filename}
                         </a>
                       ))}
                     </div>
                   )}
                 </section>
               );
-            })()}
-
-            {/* 处理进展时间线 */}
-            <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-              <h3 className="text-sm font-bold">处理进展</h3>
-              <ol className="mt-3 space-y-3 text-sm">
-                {(() => {
-                  const adminMsgs = messages.filter((m) => m.sender === "admin");
-                  const lastAdmin = adminMsgs[adminMsgs.length - 1];
-                  const firstCustomer = messages.find((m) => m.sender === "customer");
-                  type Item = {
-                    key: string;
-                    title: string;
-                    detail?: string;
-                    time: string;
-                    dotCls: string;
-                  };
-                  const items: Item[] = [];
-                  if (lastAdmin) {
-                    items.push({
-                      key: "admin-replied",
-                      title: "管理员已回复",
-                      detail: lastAdmin.content,
-                      time: formatTime(lastAdmin.createdAt),
-                      dotCls: "bg-emerald-500",
-                    });
-                  }
-                  if (adminMsgs.length > 0) {
-                    items.push({
-                      key: "assigned",
-                      title: "系统：反馈已分配给客服",
-                      time: formatTime(adminMsgs[0].createdAt),
-                      dotCls: "bg-indigo-500",
-                    });
-                  }
-                  if (firstCustomer) {
-                    items.push({
-                      key: "created",
-                      title: "你提交了反馈",
-                      time: formatTime(firstCustomer.createdAt),
-                      dotCls: "bg-slate-300",
-                    });
-                  }
-                  return items.map((item) => (
-                    <li key={item.key} className="flex gap-3">
-                      <span
-                        className={["mt-1 h-2.5 w-2.5 shrink-0 rounded-full", item.dotCls].join(
-                          " ",
-                        )}
-                      />
-                      <div>
-                        <p className="font-medium">{item.title}</p>
-                        {item.detail && (
-                          <p className="mt-1 text-xs text-slate-500">{item.detail}</p>
-                        )}
-                        <p className="mt-1 text-[11px] text-slate-400">{item.time}</p>
-                      </div>
-                    </li>
-                  ));
-                })()}
-              </ol>
-            </section>
-
-            {/* 管理员回复卡片（最新一条） */}
-            {(() => {
-              const lastAdmin = [...messages].reverse().find((m) => m.sender === "admin");
-              if (!lastAdmin) return null;
-              return (
-                <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-                  <h3 className="text-sm font-bold">管理员回复</h3>
-                  <div className="mt-3 rounded-xl border border-indigo-100 bg-indigo-50 p-3">
-                    <div className="mb-2 flex items-center gap-2">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white">
-                        客
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold">小竹客服</p>
-                        <p className="text-[11px] text-slate-500">
-                          {formatTime(lastAdmin.createdAt)}
-                        </p>
-                      </div>
-                    </div>
-                    <p className="text-sm leading-relaxed text-slate-700">{lastAdmin.content}</p>
-                  </div>
-                </section>
-              );
-            })()}
-
-            {/* 客户追问记录（第2条消息起） */}
-            {messages.filter((m) => m.sender === "customer").length > 1 && (
-              <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-                <h3 className="text-sm font-bold">你的追问</h3>
-                <div className="mt-3 space-y-3">
-                  {messages
-                    .filter((m) => m.sender === "customer")
-                    .slice(1)
-                    .map((msg) => (
-                      <div key={msg.id} className="rounded-xl bg-slate-50 p-3">
-                        <p className="text-sm leading-relaxed text-slate-700">{msg.content}</p>
-                        <p className="mt-1 text-[11px] text-slate-400">
-                          {formatTime(msg.createdAt)}
-                        </p>
-                      </div>
-                    ))}
-                </div>
-              </section>
-            )}
+            })}
 
             <div ref={bottomRef} />
           </>

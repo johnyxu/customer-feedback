@@ -73,7 +73,7 @@ export type AttachmentPayload = {
   size: number
 }
 
-export type FeedbackStatus = 'replied' | 'processing' | 'resolved'
+export type FeedbackStatus = 'new' | 'reviewed' | 'replied' | 'resolved'
 
 export type FeedbackSubmitData = {
   type: string
@@ -83,13 +83,33 @@ export type FeedbackSubmitData = {
   attachments: AttachmentPayload[]
 }
 
+export type FeedbackListFirstMessage = {
+  id: string
+  feedbackId: string
+  sender: 'customer' | 'admin'
+  senderId: string
+  content: string
+  isQuestion: boolean
+  inReplyToMessageId: string | null
+  createdAt: string
+}
+
 export type FeedbackListItem = {
   id: string
-  title: string
-  summary?: string
+  type: string
+  rating: number
+  contact: string | null
+  allowContact: boolean
   status: FeedbackStatus
+  locale: string
+  submitMode: string
+  identityId: string
+  firstCustomerMessageId: string | null
+  latestAdminReply: FeedbackListFirstMessage | null
+  createdAt: string
   updatedAt: string
-  messageCount: number
+  firstCustomerMessage: FeedbackListFirstMessage | null
+  tagMaps: unknown[]
 }
 
 export type FeedbackAttachment = {
