@@ -1,55 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
-import { listFeedback, clearSessionToken, type FeedbackListItem, type FeedbackStatus } from '../../api/feedbackService'
-
-function formatUpdatedAt(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const minutes = Math.floor(diff / 60_000)
-  if (minutes < 1) return '刚刚'
-  if (minutes < 60) return `${minutes} 分钟前`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours} 小时前`
-  const days = Math.floor(hours / 24)
-  if (days === 1) return '昨天'
-  if (days < 30) return `${days} 天前`
-  return new Date(iso).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })
-}
-
-const TYPE_LABEL: Record<string, string> = {
-  bug: '问题反馈',
-  feature: '功能建议',
-  experience: '体验问题',
-  other: '其他',
-}
-
-function statusChip(status: FeedbackStatus): { label: string; className: string } {
-  if (status === 'new') {
-    return {
-      label: '待处理',
-      className: 'bg-blue-50 text-blue-600',
-    }
-  }
-
-  if (status === 'reviewed') {
-    return {
-      label: '处理中',
-      className: 'bg-amber-50 text-amber-700',
-    }
-  }
-
-  if (status === 'replied') {
-    return {
-      label: '管理员已回复',
-      className: 'bg-emerald-50 text-emerald-700',
-    }
-  }
-
-  return {
-    label: '已解决',
-    className: 'bg-slate-100 text-slate-600',
-  }
-}
+import {
+  listFeedback,
+  clearSessionToken,
+  statusChip,
+  FEEDBACK_TYPE_LABEL,
+  type FeedbackListItem,
+} from '../../api/feedbackService'
+import { formatUpdatedAt } from '../../utils/date'
 
 export function FeedbackListPage() {
   const navigate = useNavigate()
@@ -111,7 +70,7 @@ export function FeedbackListPage() {
 
         {!loading && !error && feedbacks.length > 0 && (
           <>
-            <section className="rounded-2xl bg-gradient-to-br from-[#2563eb] to-[#4f46e5] p-4 text-white">
+            <section className="rounded-2xl bg-linear-to-br from-[#2563eb] to-[#4f46e5] p-4 text-white">
               <p className="text-xs text-white/80">反馈处理概览</p>
               <p className="mt-1 text-2xl font-black">{Math.round((repliedCount / feedbacks.length) * 100)}%</p>
               <p className="mt-1 text-xs text-white/80">
@@ -136,7 +95,9 @@ export function FeedbackListPage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-xs font-medium text-slate-700">{TYPE_LABEL[item.type] ?? item.type}</p>
+                      <p className="text-xs font-medium text-slate-700">
+                        {FEEDBACK_TYPE_LABEL[item.type] ?? item.type}
+                      </p>
                     </div>
                     <span
                       className={['shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold', chip.className].join(

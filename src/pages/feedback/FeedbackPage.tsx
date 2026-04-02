@@ -15,12 +15,7 @@ import {
   getSessionToken,
   clearSessionToken,
 } from '../../api/feedbackService'
-
-type AttachmentPayload = {
-  url: string
-  filename: string
-  size: number
-}
+import type { AttachmentPayload } from '../../api/uploadService'
 
 // Shared input style reused by <input> and <textarea>
 const inputCls =
@@ -97,7 +92,7 @@ export function FeedbackPage() {
   return (
     <div className="min-h-screen bg-[#f5f5f7] font-sans">
       {/* Gradient header: nav + hero blended */}
-      <div className="bg-gradient-to-br from-[#667eea] to-[#764ba2] px-4 pb-5">
+      <div className="bg-linear-to-br from-[#667eea] to-[#764ba2] px-4 pb-5">
         <NavBar
           title={t('nav.title')}
           left={
@@ -152,12 +147,12 @@ export function FeedbackPage() {
       </div>
 
       {/* Sticky submit button */}
-      <div className="fixed bottom-0 left-0 right-0 px-4 pt-2.5 pb-[18px] bg-gradient-to-t from-[#f5f5f7] via-[rgba(245,245,247,0.9)] to-transparent pointer-events-none">
+      <div className="fixed bottom-0 left-0 right-0 px-4 pt-2.5 pb-[18px] bg-linear-to-t from-[#f5f5f7] via-[rgba(245,245,247,0.9)] to-transparent pointer-events-none">
         <button
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="pointer-events-auto w-full border-0 rounded-xl bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white text-[15px] font-bold py-[13px] cursor-pointer shadow-[0_8px_20px_rgba(102,126,234,0.3)] active:scale-[0.99] transition-transform disabled:opacity-70 disabled:cursor-not-allowed"
+          className="pointer-events-auto w-full border-0 rounded-xl bg-linear-to-br from-[#667eea] to-[#764ba2] text-white text-[15px] font-bold py-[13px] cursor-pointer shadow-[0_8px_20px_rgba(102,126,234,0.3)] active:scale-[0.99] transition-transform disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {isSubmitting ? `Uploading... ${uploadProgress}%` : `✈ ${t('submit.button')}`}
         </button>

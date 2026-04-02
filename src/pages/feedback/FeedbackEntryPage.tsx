@@ -39,7 +39,7 @@ export function FeedbackEntryPage() {
 
   return (
     <div className="min-h-screen bg-[#f5f5f7] font-sans">
-      <div className="bg-gradient-to-br from-[#0ea5e9] via-[#2563eb] to-[#4f46e5] px-4 pb-6 pt-3 text-white">
+      <div className="bg-linear-to-br from-[#0ea5e9] via-[#2563eb] to-[#4f46e5] px-4 pb-6 pt-3 text-white">
         <div className="flex items-center justify-between">
           <p className="text-xs uppercase tracking-[0.14em] text-white/80">Customer Feedback</p>
           <LocaleSwitcher variant="dark" />

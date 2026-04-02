@@ -28,3 +28,4 @@ dist-ssr
 
 # UI prototype HTML files (root /ui/ directory only)
 /ui
+/scripts/local*
