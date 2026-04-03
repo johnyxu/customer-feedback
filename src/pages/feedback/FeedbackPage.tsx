@@ -1,22 +1,23 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card } from '../../components/ui/Card'
-import { SectionHeader } from '../../components/ui/SectionHeader'
-import { NavBar } from '../../components/ui/NavBar'
-import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
-import { BackButton } from '../../components/ui/BackButton'
-import { TypeChipGroup, type FeedbackTypeId } from './components/TypeChipGroup'
-import { StarRating } from './components/StarRating'
-import { UploadBox } from './components/UploadBox'
-import { useI18n } from '../../i18n/useI18n'
 import {
   uploadFiles,
   submitFeedback,
   submitAnonymousFeedback,
   getSessionToken,
   clearSessionToken,
-} from '../../api/feedbackService'
-import type { AttachmentPayload } from '../../api/uploadService'
+} from '@api/feedbackService'
+import type { AttachmentPayload } from '@api/uploadService'
+import { BackButton } from '@components/ui/BackButton'
+import { Card } from '@components/ui/Card'
+import { LocaleSwitcher } from '@components/ui/LocaleSwitcher'
+import { NavBar } from '@components/ui/NavBar'
+import { SectionHeader } from '@components/ui/SectionHeader'
+import { I18N_KEYS } from '@i18n/keys'
+import { useI18n } from '@i18n/useI18n'
+import { TypeChipGroup, type FeedbackTypeId } from './components/TypeChipGroup'
+import { StarRating } from './components/StarRating'
+import { UploadBox } from './components/UploadBox'
 
 // Shared input style reused by <input> and <textarea>
 const inputCls =
@@ -97,12 +98,16 @@ export function FeedbackPage() {
     <div className="min-h-screen bg-[#f5f5f7] font-sans">
       {/* Gradient header: nav + hero blended */}
       <div className="bg-linear-to-br from-[#667eea] to-[#764ba2] px-4 pb-5">
-        <NavBar title={t('nav.title')} left={<BackButton variant="dark" />} right={<LocaleSwitcher variant="dark" />} />
+        <NavBar
+          title={t(I18N_KEYS.NAV_TITLE)}
+          left={<BackButton variant="dark" />}
+          right={<LocaleSwitcher variant="dark" />}
+        />
         <div className="mt-3">
-          <h1 className="text-xl font-bold text-white m-0 mb-1.5">{t('hero.title')}</h1>
-          <p className="text-[13px] leading-relaxed text-white/90 m-0">{t('hero.description')}</p>
-          <div className="mt-3 inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-[5px] text-xs text-white font-semibold">
-            ⚡ {t('hero.sla')}
+          <h1 className="text-xl font-bold text-white m-0 mb-1.5">{t(I18N_KEYS.HERO_TITLE)}</h1>
+          <p className="text-[13px] leading-relaxed text-white/90 m-0">{t(I18N_KEYS.HERO_DESCRIPTION)}</p>
+          <div className="mt-3 inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1.25 text-xs text-white font-semibold">
+            ⚡ {t(I18N_KEYS.HERO_SLA)}
           </div>
         </div>
       </div>
@@ -110,42 +115,42 @@ export function FeedbackPage() {
       {/* Scrollable form area — pb-[100px] leaves room for the sticky button */}
       <div className="pt-4 pb-[100px]">
         <Card>
-          <SectionHeader icon="≡" title={t('section.feedbackType')} />
+          <SectionHeader icon="≡" title={t(I18N_KEYS.SECTION_FEEDBACK_TYPE)} />
           <TypeChipGroup value={feedbackType} onChange={setFeedbackType} />
         </Card>
 
         <Card>
-          <SectionHeader icon="✏" title={t('section.detail')} />
-          <label className="text-[13px] font-semibold text-gray-700 block mb-2">{t('detail.label')}</label>
+          <SectionHeader icon="✏" title={t(I18N_KEYS.SECTION_DETAIL)} />
+          <label className="text-[13px] font-semibold text-gray-700 block mb-2">{t(I18N_KEYS.DETAIL_LABEL)}</label>
           <textarea
             value={content}
             onChange={e => setContent(e.target.value)}
-            placeholder={t('detail.placeholder')}
+            placeholder={t(I18N_KEYS.DETAIL_PLACEHOLDER)}
             className={`${inputCls} min-h-[120px] resize-y leading-relaxed`}
           />
-          <p className="text-xs text-gray-400 mt-1.5 mb-0">{t('detail.tip')}</p>
+          <p className="text-xs text-gray-400 mt-1.5 mb-0">{t(I18N_KEYS.DETAIL_TIP)}</p>
         </Card>
 
         <Card>
-          <SectionHeader icon="★" title={t('section.rating')} />
+          <SectionHeader icon="★" title={t(I18N_KEYS.SECTION_RATING)} />
           <StarRating value={rating} onChange={setRating} />
         </Card>
 
         <Card>
-          <SectionHeader icon="📎" title={t('section.attachments')} />
+          <SectionHeader icon="📎" title={t(I18N_KEYS.SECTION_ATTACHMENTS)} />
           <UploadBox files={files} onFilesChange={setFiles} />
         </Card>
       </div>
 
       {/* Sticky submit button */}
-      <div className="fixed bottom-0 left-0 right-0 px-4 pt-2.5 pb-[18px] bg-linear-to-t from-[#f5f5f7] via-[rgba(245,245,247,0.9)] to-transparent pointer-events-none">
+      <div className="fixed bottom-0 left-0 right-0 px-4 pt-2.5 pb-4.5 bg-linear-to-t from-[#f5f5f7] via-[rgba(245,245,247,0.9)] to-transparent pointer-events-none">
         <button
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitting}
           className="pointer-events-auto w-full border-0 rounded-xl bg-linear-to-br from-[#667eea] to-[#764ba2] text-white text-[15px] font-bold py-[13px] cursor-pointer shadow-[0_8px_20px_rgba(102,126,234,0.3)] active:scale-[0.99] transition-transform disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? `Uploading... ${uploadProgress}%` : `✈ ${t('submit.button')}`}
+          {isSubmitting ? `Uploading... ${uploadProgress}%` : `✈ ${t(I18N_KEYS.SUBMIT_BUTTON)}`}
         </button>
       </div>
 
@@ -153,7 +158,7 @@ export function FeedbackPage() {
       {submitted && (
         <div className="fixed left-4 right-4 bottom-[22px] bg-gray-900 text-white rounded-xl px-3.5 py-3 flex items-center gap-2 text-[13px] shadow-[0_10px_26px_rgba(0,0,0,0.28)] z-50">
           <span className="text-emerald-400 text-base">✓</span>
-          <span>{t('submit.success')}</span>
+          <span>{t(I18N_KEYS.SUBMIT_SUCCESS)}</span>
         </div>
       )}
     </div>

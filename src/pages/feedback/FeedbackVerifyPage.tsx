@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
-import { BackButton } from '../../components/ui/BackButton'
-import { sendEmailVerificationCode, verifyEmailCode } from '../../api/feedbackService'
+import { sendEmailVerificationCode, verifyEmailCode } from '@api/feedbackService'
+import { BackButton } from '@components/ui/BackButton'
+import { LocaleSwitcher } from '@components/ui/LocaleSwitcher'
+import { I18N_KEYS } from '@i18n/keys'
+import { useI18n } from '@i18n/useI18n'
 
 const CODE_LENGTH = 6
 const RESEND_SECONDS = 45
 
 export function FeedbackVerifyPage() {
   const navigate = useNavigate()
+  const { t } = useI18n()
   const location = useLocation()
   const routeState = location.state as { email?: string } | null
   const email = routeState?.email?.trim() || 'you@example.com'
@@ -85,7 +88,7 @@ export function FeedbackVerifyPage() {
     try {
       await sendEmailVerificationCode(email)
     } catch {
-      // 发送失败时不阻断 UI，用户可重试
+      // Keep UI interactive even when resend fails; user can retry.
     }
     setDigits(Array(CODE_LENGTH).fill(''))
     setSecondsLeft(RESEND_SECONDS)
@@ -97,12 +100,10 @@ export function FeedbackVerifyPage() {
     setVerifyError(null)
     setIsVerifying(true)
     try {
-      // 验证 code，服务端颁发 token，verifyEmailCode 内部持久化到 localStorage
       await verifyEmailCode(email, code)
-      // token 已由 verifyEmailCode 内部存入 localStorage，页面选传 email 仅用于展示
       navigate('/feedback', { state: { email } })
     } catch {
-      setVerifyError('验证码错误或已过期，请重新获取验证码')
+      setVerifyError(t(I18N_KEYS.VERIFY_ERROR_INVALID_CODE))
       setIsVerifying(false)
     }
   }
@@ -112,22 +113,20 @@ export function FeedbackVerifyPage() {
       <header className="border-b border-slate-200 bg-white px-4 pb-2 pt-3">
         <div className="flex items-center justify-between">
           <BackButton to="/feedback/start" />
-          <h1 className="font-bold">验证邮箱</h1>
+          <h1 className="font-bold">{t(I18N_KEYS.VERIFY_PAGE_TITLE)}</h1>
           <LocaleSwitcher />
         </div>
       </header>
 
       <main className="space-y-4 px-4 py-5">
         <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-          <h2 className="text-lg font-bold">验证码已发送到你的邮箱</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            请在 10 分钟内输入 6 位验证码，验证通过后即可继续填写反馈并接收管理员回复。
-          </p>
+          <h2 className="text-lg font-bold">{t(I18N_KEYS.VERIFY_SENT_TITLE)}</h2>
+          <p className="mt-1 text-sm text-slate-500">{t(I18N_KEYS.VERIFY_SENT_DESC)}</p>
 
-          <p className="mt-4 text-xs text-slate-500">邮箱</p>
+          <p className="mt-4 text-xs text-slate-500">{t(I18N_KEYS.VERIFY_EMAIL_LABEL)}</p>
           <p className="text-sm font-semibold text-slate-800 break-all">{email}</p>
 
-          <p className="mt-4 text-xs text-slate-500">验证码</p>
+          <p className="mt-4 text-xs text-slate-500">{t(I18N_KEYS.VERIFY_CODE_LABEL)}</p>
           <div className="mt-2 grid grid-cols-6 gap-2">
             {digits.map((digit, index) => {
               const active = index === digits.findIndex(item => item === '') || (digits.every(Boolean) && index === 5)
@@ -156,7 +155,7 @@ export function FeedbackVerifyPage() {
           </div>
 
           <p className={['mt-2 text-xs', canSubmit ? 'text-emerald-600' : 'text-slate-400'].join(' ')}>
-            {canSubmit ? '验证码格式正确，可继续。' : '支持粘贴 6 位数字验证码。'}
+            {canSubmit ? t(I18N_KEYS.VERIFY_HINT_VALID) : t(I18N_KEYS.VERIFY_HINT_PASTE)}
           </p>
 
           <button
@@ -165,7 +164,7 @@ export function FeedbackVerifyPage() {
             disabled={!canSubmit || isVerifying}
             className="mt-4 h-11 w-full rounded-xl bg-indigo-600 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(79,70,229,0.28)] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:shadow-none"
           >
-            {isVerifying ? '验证中...' : '验证并继续'}
+            {isVerifying ? t(I18N_KEYS.VERIFY_SUBMITTING) : t(I18N_KEYS.VERIFY_SUBMIT)}
           </button>
 
           {verifyError && (
@@ -175,7 +174,7 @@ export function FeedbackVerifyPage() {
           )}
 
           <div className="mt-3 flex items-center justify-between text-xs">
-            <span className="text-slate-500">未收到邮件？</span>
+            <span className="text-slate-500">{t(I18N_KEYS.VERIFY_NOT_RECEIVED)}</span>
             <button
               type="button"
               onClick={handleResend}
@@ -184,7 +183,7 @@ export function FeedbackVerifyPage() {
                 canResend ? 'font-semibold text-indigo-600' : 'cursor-not-allowed font-semibold text-slate-400'
               }
             >
-              {canResend ? '重新发送验证码' : `${secondsLeft}s 后重新发送`}
+              {canResend ? t(I18N_KEYS.VERIFY_RESEND) : `${secondsLeft}s ${t(I18N_KEYS.VERIFY_RESEND_AFTER_SUFFIX)}`}
             </button>
           </div>
         </section>

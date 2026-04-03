@@ -1,17 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
 import {
+  feedbackTypeLabel,
   listFeedback,
   clearSessionToken,
   statusChip,
-  FEEDBACK_TYPE_LABEL,
   type FeedbackListItem,
-} from '../../api/feedbackService'
-import { formatUpdatedAt } from '../../utils/date'
+} from '@api/feedbackService'
+import { LocaleSwitcher } from '@components/ui/LocaleSwitcher'
+import { I18N_KEYS } from '@i18n/keys'
+import { useI18n } from '@i18n/useI18n'
+import { formatUpdatedAt } from '@utils/date'
 
 export function FeedbackListPage() {
   const navigate = useNavigate()
+  const { locale, t } = useI18n()
 
   const [feedbacks, setFeedbacks] = useState<FeedbackListItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -30,7 +33,7 @@ export function FeedbackListPage() {
           navigate('/')
           return
         }
-        setError('加载失败，请稍后重试')
+        setError(t(I18N_KEYS.COMMON_LOAD_FAILED_RETRY))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -38,7 +41,7 @@ export function FeedbackListPage() {
     return () => {
       cancelled = true
     }
-  }, [navigate])
+  }, [navigate, t])
 
   const repliedCount = useMemo(
     () =>
@@ -52,7 +55,7 @@ export function FeedbackListPage() {
     <div className="min-h-screen bg-[#f5f5f7] font-sans text-slate-900">
       <header className="border-b border-slate-200 bg-white px-4 pb-2 pt-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold">我的反馈</h1>
+          <h1 className="text-lg font-bold">{t(I18N_KEYS.LIST_TITLE)}</h1>
           <div className="flex items-center gap-2">
             <LocaleSwitcher />
           </div>
@@ -60,26 +63,26 @@ export function FeedbackListPage() {
       </header>
 
       <main className="space-y-3 px-4 py-4">
-        {loading && <p className="py-10 text-center text-sm text-slate-400">加载中…</p>}
+        {loading && <p className="py-10 text-center text-sm text-slate-400">{t(I18N_KEYS.COMMON_LOADING)}</p>}
 
         {!loading && error && <p className="py-10 text-center text-sm text-red-500">{error}</p>}
 
         {!loading && !error && feedbacks.length === 0 && (
-          <p className="py-10 text-center text-sm text-slate-400">暂无反馈记录</p>
+          <p className="py-10 text-center text-sm text-slate-400">{t(I18N_KEYS.LIST_EMPTY)}</p>
         )}
 
         {!loading && !error && feedbacks.length > 0 && (
           <>
             <section className="rounded-2xl bg-linear-to-br from-[#2563eb] to-[#4f46e5] p-4 text-white">
-              <p className="text-xs text-white/80">反馈处理概览</p>
+              <p className="text-xs text-white/80">{t(I18N_KEYS.LIST_OVERVIEW)}</p>
               <p className="mt-1 text-2xl font-black">{Math.round((repliedCount / feedbacks.length) * 100)}%</p>
               <p className="mt-1 text-xs text-white/80">
-                {repliedCount}/{feedbacks.length} 条已得到回复或解决
+                {repliedCount}/{feedbacks.length} {t(I18N_KEYS.LIST_REPLIED_SUMMARY_SUFFIX)}
               </p>
             </section>
 
             {feedbacks.map(item => {
-              const chip = statusChip(item.status)
+              const chip = statusChip(item.status, locale)
               return (
                 <article
                   key={item.id}
@@ -95,9 +98,7 @@ export function FeedbackListPage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-xs font-medium text-slate-700">
-                        {FEEDBACK_TYPE_LABEL[item.type] ?? item.type}
-                      </p>
+                      <p className="text-xs font-medium text-slate-700">{feedbackTypeLabel(item.type, locale)}</p>
                     </div>
                     <span
                       className={['shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold', chip.className].join(
@@ -114,10 +115,12 @@ export function FeedbackListPage() {
 
                   <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
                     <span>⭐ {item.rating}</span>
-                    <span>{formatUpdatedAt(item.updatedAt)}</span>
+                    <span>{formatUpdatedAt(item.updatedAt, locale)}</span>
                   </div>
 
-                  <div className="mt-2 text-right text-xs font-semibold text-indigo-600">查看详情 ›</div>
+                  <div className="mt-2 text-right text-xs font-semibold text-indigo-600">
+                    {t(I18N_KEYS.LIST_VIEW_DETAIL)}
+                  </div>
                 </article>
               )
             })}

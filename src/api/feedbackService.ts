@@ -1,10 +1,10 @@
 /**
- * Feedback 相关的 API 服务
- * 统一管理所有反馈 API 调用和领域类型
+ * Feedback API service.
+ * Centralizes feedback API calls and domain types.
  *
- * Auth 存储 → src/api/auth.ts
- * 文件上传  → src/api/uploadService.ts
- * HTTP 工具 → src/api/client.ts
+ * Auth storage -> src/api/auth.ts
+ * File upload  -> src/api/uploadService.ts
+ * HTTP utils   -> src/api/client.ts
  */
 
 import {
@@ -18,6 +18,8 @@ import {
   feedbackThreadPath,
   feedbackFollowUpPath,
 } from '../constants/routes'
+import { messages, type Locale } from '../i18n/messages'
+import { I18N_KEYS, type I18nKey } from '../i18n/keys'
 import { buildApiUrl, buildHeaders } from './client'
 import { setAuthData, type AuthData } from './auth'
 import type { AttachmentPayload } from './uploadService'
@@ -123,25 +125,36 @@ export type FeedbackThread = {
 }
 
 // ============================================================
-// UI 展示映射（集中管理，避免各页面重复定义）
+// UI display mappings
 // ============================================================
 
-export const FEEDBACK_TYPE_LABEL: Record<string, string> = {
-  bug: '问题反馈',
-  feature: '功能建议',
-  experience: '体验问题',
-  other: '其他',
+const FEEDBACK_TYPE_KEY: Record<string, I18nKey> = {
+  bug: I18N_KEYS.FEEDBACK_TYPE_BUG,
+  feature: I18N_KEYS.FEEDBACK_TYPE_FEATURE,
+  experience: I18N_KEYS.FEEDBACK_TYPE_EXPERIENCE_ISSUE,
+  other: I18N_KEYS.FEEDBACK_TYPE_OTHER,
 }
 
-export function statusChip(status: FeedbackStatus): { label: string; className: string } {
-  if (status === 'new') return { label: '待处理', className: 'bg-blue-50 text-blue-600' }
-  if (status === 'reviewed') return { label: '处理中', className: 'bg-amber-50 text-amber-700' }
-  if (status === 'replied') return { label: '管理员已回复', className: 'bg-emerald-50 text-emerald-700' }
-  return { label: '已解决', className: 'bg-slate-100 text-slate-600' }
+export function feedbackTypeLabel(type: string, locale: Locale): string {
+  const key = FEEDBACK_TYPE_KEY[type]
+  if (!key) return type
+  return messages[locale][key]
+}
+
+export function statusChip(status: FeedbackStatus, locale: Locale): { label: string; className: string } {
+  if (status === 'new')
+    return { label: messages[locale][I18N_KEYS.FEEDBACK_STATUS_NEW], className: 'bg-blue-50 text-blue-600' }
+  if (status === 'reviewed') {
+    return { label: messages[locale][I18N_KEYS.FEEDBACK_STATUS_REVIEWED], className: 'bg-amber-50 text-amber-700' }
+  }
+  if (status === 'replied') {
+    return { label: messages[locale][I18N_KEYS.FEEDBACK_STATUS_REPLIED], className: 'bg-emerald-50 text-emerald-700' }
+  }
+  return { label: messages[locale][I18N_KEYS.FEEDBACK_STATUS_RESOLVED], className: 'bg-slate-100 text-slate-600' }
 }
 
 // ============================================================
-// Email 验证反馈流程
+// Email verification flow
 // ============================================================
 
 export async function sendEmailVerificationCode(email: string): Promise<{ success: boolean; message?: string }> {
@@ -193,7 +206,7 @@ export async function submitEmailFeedback(
 }
 
 // ============================================================
-// 匿名反馈流程
+// Anonymous feedback flow
 // ============================================================
 
 export async function submitAnonymousFeedback(
@@ -223,7 +236,7 @@ export async function bindAnonymousEmail(
 }
 
 // ============================================================
-// 反馈列表 & 会话线程
+// Feedback list and thread
 // ============================================================
 
 export async function listFeedback(): Promise<FeedbackListItem[]> {
@@ -262,4 +275,3 @@ export async function submitFollowUp(
   if (!response.ok) throw new Error(`Follow-up failed: ${response.status}`)
   return response.json()
 }
-

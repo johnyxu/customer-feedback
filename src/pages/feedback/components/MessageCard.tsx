@@ -1,10 +1,7 @@
-import {
-  FEEDBACK_TYPE_LABEL,
-  statusChip,
-  type FeedbackMessage,
-  type FeedbackStatus,
-} from '../../../api/feedbackService'
-import { formatTime } from '../../../utils/date'
+import { feedbackTypeLabel, statusChip, type FeedbackMessage, type FeedbackStatus } from '@api/feedbackService'
+import { I18N_KEYS } from '@i18n/keys'
+import { useI18n } from '@i18n/useI18n'
+import { formatTime } from '@utils/date'
 
 type Props = {
   msg: FeedbackMessage
@@ -14,10 +11,11 @@ type Props = {
 }
 
 export function MessageCard({ msg, isFirst, threadStatus, threadType }: Props) {
+  const { locale, t } = useI18n()
   const isCustomer = msg.sender === 'customer'
   const images = msg.attachments.filter(a => /\.(png|jpe?g|gif|webp)$/i.test(a.filename))
   const files = msg.attachments.filter(a => !/\.(png|jpe?g|gif|webp)$/i.test(a.filename))
-  const badge = statusChip(threadStatus)
+  const badge = statusChip(threadStatus, locale)
 
   return (
     <section
@@ -34,19 +32,19 @@ export function MessageCard({ msg, isFirst, threadStatus, threadType }: Props) {
               isCustomer ? 'bg-indigo-500' : 'bg-emerald-500',
             ].join(' ')}
           >
-            {isCustomer ? '我' : '客'}
+            {isCustomer ? t(I18N_KEYS.MESSAGE_ROLE_CUSTOMER_SHORT) : t(I18N_KEYS.MESSAGE_ROLE_ADMIN_SHORT)}
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-700">{isCustomer ? '我' : '小竹客服'}</p>
-            <p className="text-[10px] text-slate-400">{formatTime(msg.createdAt)}</p>
+            <p className="text-xs font-semibold text-slate-700">
+              {isCustomer ? t(I18N_KEYS.MESSAGE_ROLE_CUSTOMER_NAME) : t(I18N_KEYS.MESSAGE_ROLE_SUPPORT_NAME)}
+            </p>
+            <p className="text-[10px] text-slate-400">{formatTime(msg.createdAt, locale)}</p>
           </div>
         </div>
 
         {isCustomer && (
           <div className="flex items-center gap-1.5">
-            {isFirst && (
-              <span className="text-[11px] text-slate-400">{FEEDBACK_TYPE_LABEL[threadType] ?? threadType}</span>
-            )}
+            {isFirst && <span className="text-[11px] text-slate-400">{feedbackTypeLabel(threadType, locale)}</span>}
             <span
               className={['shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold', badge.className].join(' ')}
             >

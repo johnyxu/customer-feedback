@@ -57,6 +57,7 @@ src/
 - Card style: `rounded-2xl border bg-white p-4 shadow-sm`
 - Status badges: always use `statusChip(status)` which returns `{ label, className }`
 - Customer messages: `border-slate-100`, admin messages: `border-indigo-100`
+- **优先使用 Tailwind 预定义样式** — e.g. use `py-1.25` instead of `py-[5px]`, `px-3.5` instead of `px-[14px]`. Only use bracket notation `[value]` when no predefined class exists
 
 ### Forms & Async
 
@@ -91,6 +92,9 @@ src/
 - Keep JSX render blocks under ~50 lines — extract named sub-components (`<MessageCard />`, `<FollowUpBox />`) rather than nesting deeply
 - Group related state declarations together; group related handlers together
 - Avoid anonymous inline arrow functions in JSX for anything more than trivial `() => navigate(...)` calls
+- **Import path rule**: when a relative import goes above 1 parent level (e.g. `../../`), prefer alias imports instead of deep relative paths
+  - Prefer aliases: `@/`, `@api/`, `@components/`, `@constants/`, `@i18n/`, `@pages/`, `@utils/`
+  - Example: use `@components/ui/BackButton` instead of `../../components/ui/BackButton`
 
 ## What NOT to Do
 

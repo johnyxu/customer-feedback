@@ -1,0 +1,120 @@
+export const I18N_KEYS = {
+  NAV_TITLE: 'nav.title',
+  NAV_BACK: 'nav.back',
+  NAV_SWITCH_LANGUAGE: 'nav.switchLanguage',
+  NAV_LANGUAGE_PICKER_TITLE: 'nav.languagePickerTitle',
+  NAV_LANGUAGE_PICKER_CANCEL: 'nav.languagePickerCancel',
+
+  LOCALE_ZH_CN: 'locale.zh-CN',
+  LOCALE_ZH_HANT: 'locale.zh-Hant',
+  LOCALE_EN: 'locale.en',
+
+  HERO_TITLE: 'hero.title',
+  HERO_DESCRIPTION: 'hero.description',
+  HERO_SLA: 'hero.sla',
+
+  SECTION_FEEDBACK_TYPE: 'section.feedbackType',
+  SECTION_DETAIL: 'section.detail',
+  SECTION_RATING: 'section.rating',
+  SECTION_ATTACHMENTS: 'section.attachments',
+  SECTION_CONTACT: 'section.contact',
+  SECTION_OTHER_CHANNELS: 'section.otherChannels',
+
+  FEEDBACK_TYPE_BUG: 'feedback.type.bug',
+  FEEDBACK_TYPE_FEATURE: 'feedback.type.feature',
+  FEEDBACK_TYPE_EXPERIENCE: 'feedback.type.experience',
+  FEEDBACK_TYPE_OTHER: 'feedback.type.other',
+
+  DETAIL_LABEL: 'detail.label',
+  DETAIL_PLACEHOLDER: 'detail.placeholder',
+  DETAIL_TIP: 'detail.tip',
+
+  RATING_1: 'rating.1',
+  RATING_2: 'rating.2',
+  RATING_3: 'rating.3',
+  RATING_4: 'rating.4',
+  RATING_5: 'rating.5',
+
+  UPLOAD_HELP_1: 'upload.help.1',
+  UPLOAD_HELP_2: 'upload.help.2',
+
+  CONTACT_INPUT_LABEL: 'contact.inputLabel',
+  CONTACT_PLACEHOLDER: 'contact.placeholder',
+  CONTACT_ALLOW: 'contact.allow',
+
+  CHANNEL_EMAIL_LABEL: 'channel.email.label',
+  CHANNEL_EMAIL_VALUE: 'channel.email.value',
+  CHANNEL_TIME_LABEL: 'channel.time.label',
+  CHANNEL_TIME_VALUE: 'channel.time.value',
+
+  SUBMIT_BUTTON: 'submit.button',
+  SUBMIT_SUCCESS: 'submit.success',
+
+  COMMON_LOADING: 'common.loading',
+  COMMON_LOAD_FAILED_RETRY: 'common.loadFailedRetry',
+
+  FEEDBACK_STATUS_NEW: 'feedback.status.new',
+  FEEDBACK_STATUS_REVIEWED: 'feedback.status.reviewed',
+  FEEDBACK_STATUS_REPLIED: 'feedback.status.replied',
+  FEEDBACK_STATUS_RESOLVED: 'feedback.status.resolved',
+  FEEDBACK_TYPE_EXPERIENCE_ISSUE: 'feedback.type.experienceIssue',
+
+  DETAIL_PAGE_TITLE: 'detail.page.title',
+
+  ENTRY_SEND_CODE_FAILED: 'entry.sendCodeFailed',
+  ENTRY_HERO_TITLE: 'entry.hero.title',
+  ENTRY_HERO_DESC: 'entry.hero.desc',
+  ENTRY_SECTION_TITLE: 'entry.section.title',
+  ENTRY_SECTION_DESC: 'entry.section.desc',
+  ENTRY_EMAIL_LABEL: 'entry.email.label',
+  ENTRY_EMAIL_HINT_EMPTY: 'entry.email.hint.empty',
+  ENTRY_EMAIL_HINT_VALID: 'entry.email.hint.valid',
+  ENTRY_EMAIL_HINT_INVALID: 'entry.email.hint.invalid',
+  ENTRY_NEXT_VERIFY: 'entry.next.verify',
+  ENTRY_ANON_TITLE: 'entry.anon.title',
+  ENTRY_ANON_DESC: 'entry.anon.desc',
+  ENTRY_ANON_CONTINUE: 'entry.anon.continue',
+  ENTRY_ANON_SELECTED: 'entry.anon.selected',
+  ENTRY_SENDING: 'entry.sending',
+
+  LIST_TITLE: 'list.title',
+  LIST_EMPTY: 'list.empty',
+  LIST_OVERVIEW: 'list.overview',
+  LIST_REPLIED_SUMMARY_SUFFIX: 'list.repliedSummarySuffix',
+  LIST_VIEW_DETAIL: 'list.viewDetail',
+
+  VERIFY_PAGE_TITLE: 'verify.page.title',
+  VERIFY_SENT_TITLE: 'verify.sent.title',
+  VERIFY_SENT_DESC: 'verify.sent.desc',
+  VERIFY_EMAIL_LABEL: 'verify.email.label',
+  VERIFY_CODE_LABEL: 'verify.code.label',
+  VERIFY_HINT_VALID: 'verify.hint.valid',
+  VERIFY_HINT_PASTE: 'verify.hint.paste',
+  VERIFY_SUBMIT: 'verify.submit',
+  VERIFY_SUBMITTING: 'verify.submitting',
+  VERIFY_NOT_RECEIVED: 'verify.notReceived',
+  VERIFY_RESEND: 'verify.resend',
+  VERIFY_RESEND_AFTER_SUFFIX: 'verify.resendAfterSuffix',
+  VERIFY_ERROR_INVALID_CODE: 'verify.error.invalidCode',
+
+  FOLLOWUP_SEND_FAILED: 'followup.sendFailed',
+  FOLLOWUP_TITLE: 'followup.title',
+  FOLLOWUP_PLACEHOLDER: 'followup.placeholder',
+  FOLLOWUP_UPLOADING: 'followup.uploading',
+  FOLLOWUP_SHORTCUT: 'followup.shortcut',
+  FOLLOWUP_SEND: 'followup.send',
+  FOLLOWUP_SENDING: 'followup.sending',
+
+  MESSAGE_ROLE_CUSTOMER_SHORT: 'message.role.customerShort',
+  MESSAGE_ROLE_ADMIN_SHORT: 'message.role.adminShort',
+  MESSAGE_ROLE_CUSTOMER_NAME: 'message.role.customerName',
+  MESSAGE_ROLE_SUPPORT_NAME: 'message.role.supportName',
+
+  DATE_JUST_NOW: 'date.justNow',
+  DATE_MINUTES_AGO: 'date.minutesAgo',
+  DATE_HOURS_AGO: 'date.hoursAgo',
+  DATE_YESTERDAY: 'date.yesterday',
+  DATE_DAYS_AGO: 'date.daysAgo',
+} as const
+
+export type I18nKey = (typeof I18N_KEYS)[keyof typeof I18N_KEYS]

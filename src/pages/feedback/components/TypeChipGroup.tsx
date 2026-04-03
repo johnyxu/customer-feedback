@@ -1,11 +1,12 @@
-import { useI18n } from '../../../i18n/useI18n'
+import { I18N_KEYS, type I18nKey } from '@i18n/keys'
+import { useI18n } from '@i18n/useI18n'
 
 const FEEDBACK_TYPES = [
-  { id: 'bug', labelKey: 'feedback.type.bug' },
-  { id: 'feature', labelKey: 'feedback.type.feature' },
-  { id: 'experience', labelKey: 'feedback.type.experience' },
-  { id: 'other', labelKey: 'feedback.type.other' },
-] as const
+  { id: 'bug', labelKey: I18N_KEYS.FEEDBACK_TYPE_BUG },
+  { id: 'feature', labelKey: I18N_KEYS.FEEDBACK_TYPE_FEATURE },
+  { id: 'experience', labelKey: I18N_KEYS.FEEDBACK_TYPE_EXPERIENCE },
+  { id: 'other', labelKey: I18N_KEYS.FEEDBACK_TYPE_OTHER },
+] as const satisfies readonly { id: string; labelKey: I18nKey }[]
 
 export type FeedbackTypeId = (typeof FEEDBACK_TYPES)[number]['id']
 

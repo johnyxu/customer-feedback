@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { useI18n } from '../../i18n/useI18n'
-import type { Locale } from '../../i18n/messages'
+import { I18N_KEYS, type I18nKey } from '@i18n/keys'
+import type { Locale } from '@i18n/messages'
+import { useI18n } from '@i18n/useI18n'
 
-const LOCALE_OPTIONS: Array<{ value: Locale; shortLabel: string; labelKey: string }> = [
-  { value: 'zh-CN', shortLabel: '简', labelKey: 'locale.zh-CN' },
-  { value: 'zh-Hant', shortLabel: '繁', labelKey: 'locale.zh-Hant' },
-  { value: 'en', shortLabel: 'EN', labelKey: 'locale.en' },
+const LOCALE_OPTIONS: Array<{ value: Locale; shortLabel: string; labelKey: I18nKey }> = [
+  { value: 'zh-CN', shortLabel: '简', labelKey: I18N_KEYS.LOCALE_ZH_CN },
+  { value: 'zh-Hant', shortLabel: '繁', labelKey: I18N_KEYS.LOCALE_ZH_HANT },
+  { value: 'en', shortLabel: 'EN', labelKey: I18N_KEYS.LOCALE_EN },
 ]
 
 interface LocaleSwitcherProps {
@@ -29,7 +30,7 @@ export function LocaleSwitcher({ variant = 'light' }: LocaleSwitcherProps) {
       <button
         type="button"
         onClick={() => setIsOpen(prev => !prev)}
-        aria-label={t('nav.switchLanguage')}
+        aria-label={t(I18N_KEYS.NAV_SWITCH_LANGUAGE)}
         className={triggerCls}
       >
         {current.shortLabel}
@@ -40,14 +41,16 @@ export function LocaleSwitcher({ variant = 'light' }: LocaleSwitcherProps) {
           {/* Backdrop */}
           <button
             type="button"
-            aria-label={t('nav.languagePickerCancel')}
+            aria-label={t(I18N_KEYS.NAV_LANGUAGE_PICKER_CANCEL)}
             onClick={() => setIsOpen(false)}
             className="fixed inset-0 z-40 border-0 bg-black/20"
           />
 
           {/* Dropdown */}
           <div className="absolute right-0 top-full z-50 mt-1 w-[200px] rounded-xl border border-gray-100 bg-white p-2.5 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
-            <p className="m-0 mb-2 px-1 text-xs font-semibold text-gray-500">{t('nav.languagePickerTitle')}</p>
+            <p className="m-0 mb-2 px-1 text-xs font-semibold text-gray-500">
+              {t(I18N_KEYS.NAV_LANGUAGE_PICKER_TITLE)}
+            </p>
 
             <div className="grid gap-1.5">
               {LOCALE_OPTIONS.map(item => {
@@ -79,7 +82,7 @@ export function LocaleSwitcher({ variant = 'light' }: LocaleSwitcherProps) {
               onClick={() => setIsOpen(false)}
               className="mt-2 w-full cursor-pointer rounded-lg border border-gray-200 bg-white py-2 text-sm text-gray-600 hover:bg-gray-50"
             >
-              {t('nav.languagePickerCancel')}
+              {t(I18N_KEYS.NAV_LANGUAGE_PICKER_CANCEL)}
             </button>
           </div>
         </>

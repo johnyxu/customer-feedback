@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { I18nContext, type I18nContextValue } from './context'
+import type { I18nKey } from './keys'
 import { messages, type Locale } from './messages'
 
 const STORAGE_KEY = 'xiaozhu.web.locale'
@@ -76,7 +77,7 @@ export function I18nProvider({ children }: I18nProviderProps) {
     return {
       locale,
       setLocale,
-      t: (key: string) => table[key] ?? messages['zh-CN'][key] ?? key,
+      t: (key: I18nKey) => table[key] ?? messages['zh-CN'][key] ?? key,
     }
   }, [locale])
 

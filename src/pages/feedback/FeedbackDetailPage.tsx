@@ -1,18 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
-import {
-  getFeedbackThread,
-  clearSessionToken,
-  type FeedbackThread,
-  type FeedbackMessage,
-} from '../../api/feedbackService'
-import { BackButton } from '../../components/ui/BackButton'
-import { FollowUpBox } from './components/FollowUpBox'
-import { MessageCard } from './components/MessageCard'
+import { LocaleSwitcher } from '@components/ui/LocaleSwitcher'
+import { getFeedbackThread, clearSessionToken, type FeedbackThread, type FeedbackMessage } from '@api/feedbackService'
+import { BackButton } from '@components/ui/BackButton'
+import { I18N_KEYS } from '@i18n/keys'
+import { useI18n } from '@i18n/useI18n'
+import { FollowUpBox } from '@pages/feedback/components/FollowUpBox'
+import { MessageCard } from '@pages/feedback/components/MessageCard'
 
 export function FeedbackDetailPage() {
   const navigate = useNavigate()
+  const { t } = useI18n()
   const { feedbackId: feedbackIdParam } = useParams<{ feedbackId: string }>()
   const location = useLocation()
   const state = location.state as { feedback?: { id: string; title: string; status: string } } | null
@@ -26,8 +24,7 @@ export function FeedbackDetailPage() {
 
   useEffect(() => {
     if (!feedbackId) {
-      setError('缺少反馈 ID，请从列表页重新进入')
-      setLoading(false)
+      navigate('/feedback/list')
       return
     }
     let cancelled = false
@@ -42,7 +39,7 @@ export function FeedbackDetailPage() {
           navigate('/')
           return
         }
-        setError('加载失败，请稍后重试')
+        setError(t(I18N_KEYS.COMMON_LOAD_FAILED_RETRY))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -50,9 +47,7 @@ export function FeedbackDetailPage() {
     return () => {
       cancelled = true
     }
-  }, [feedbackId, navigate])
-
-
+  }, [feedbackId, navigate, t])
 
   const messages: FeedbackMessage[] = thread
     ? [...thread.messages].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
@@ -63,13 +58,13 @@ export function FeedbackDetailPage() {
       <header className="border-b border-slate-200 bg-white px-4 pb-2 pt-3">
         <div className="flex items-center justify-between">
           <BackButton to="/feedback/list" />
-          <h1 className="font-bold">反馈详情</h1>
+          <h1 className="font-bold">{t(I18N_KEYS.DETAIL_PAGE_TITLE)}</h1>
           <LocaleSwitcher />
         </div>
       </header>
 
       <main className="space-y-3 px-4 py-4">
-        {loading && <p className="py-10 text-center text-sm text-slate-400">加载中…</p>}
+        {loading && <p className="py-10 text-center text-sm text-slate-400">{t(I18N_KEYS.COMMON_LOADING)}</p>}
         {!loading && error && <p className="py-10 text-center text-sm text-red-500">{error}</p>}
 
         {!loading && !error && thread && (

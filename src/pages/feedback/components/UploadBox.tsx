@@ -1,5 +1,6 @@
 import type { ChangeEvent } from 'react'
-import { useI18n } from '../../../i18n/useI18n'
+import { I18N_KEYS } from '@i18n/keys'
+import { useI18n } from '@i18n/useI18n'
 
 type UploadBoxProps = {
   files: File[]
@@ -25,9 +26,9 @@ export function UploadBox({ files, onFilesChange }: UploadBoxProps) {
       />
       <div className="text-2xl text-gray-400 mb-1.5">☁</div>
       <p className="m-0 text-xs text-gray-500 leading-relaxed">
-        {t('upload.help.1')}
+        {t(I18N_KEYS.UPLOAD_HELP_1)}
         <br />
-        {t('upload.help.2')}
+        {t(I18N_KEYS.UPLOAD_HELP_2)}
       </p>
       {files.length > 0 && (
         <p className="m-0 mt-2 text-xs text-gray-600 leading-relaxed break-all">

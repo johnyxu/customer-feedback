@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LocaleSwitcher } from '../../components/ui/LocaleSwitcher'
-import { sendEmailVerificationCode } from '../../api/feedbackService'
+import { sendEmailVerificationCode } from '@api/feedbackService'
+import { LocaleSwitcher } from '@components/ui/LocaleSwitcher'
+import { I18N_KEYS } from '@i18n/keys'
+import { useI18n } from '@i18n/useI18n'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function FeedbackEntryPage() {
   const navigate = useNavigate()
+  const { t } = useI18n()
   const [email, setEmail] = useState('')
   const [anonymous, setAnonymous] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -23,10 +26,9 @@ export function FeedbackEntryPage() {
 
     try {
       await sendEmailVerificationCode(trimmedEmail)
-      // 发送验证码成功，导航到验证页面
       navigate('/feedback/verify', { state: { email: trimmedEmail } })
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '发送验证码失败，请重试'
+      const errorMessage = err instanceof Error ? err.message : t(I18N_KEYS.ENTRY_SEND_CODE_FAILED)
       setError(errorMessage)
       setIsLoading(false)
     }
@@ -44,19 +46,17 @@ export function FeedbackEntryPage() {
           <p className="text-xs uppercase tracking-[0.14em] text-white/80">Customer Feedback</p>
           <LocaleSwitcher variant="dark" />
         </div>
-        <h1 className="mt-2 text-2xl font-black leading-tight">快速发起反馈，实时跟进处理进展</h1>
-        <p className="mt-2 text-sm text-white/90">输入邮箱可接收进度提醒，也可匿名反馈。</p>
+        <h1 className="mt-2 text-2xl font-black leading-tight">{t(I18N_KEYS.ENTRY_HERO_TITLE)}</h1>
+        <p className="mt-2 text-sm text-white/90">{t(I18N_KEYS.ENTRY_HERO_DESC)}</p>
       </div>
 
       <div className="space-y-3 px-4 py-4">
         <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-          <h2 className="text-sm font-bold text-gray-900">开始反馈</h2>
-          <p className="mt-1 text-xs text-gray-500">
-            我们会发送一次验证码用于确认身份，后续可查看管理员回复与继续跟进。
-          </p>
+          <h2 className="text-sm font-bold text-gray-900">{t(I18N_KEYS.ENTRY_SECTION_TITLE)}</h2>
+          <p className="mt-1 text-xs text-gray-500">{t(I18N_KEYS.ENTRY_SECTION_DESC)}</p>
 
           <label htmlFor="email" className="mt-4 block text-xs text-gray-500">
-            邮箱地址
+            {t(I18N_KEYS.ENTRY_EMAIL_LABEL)}
           </label>
           <div
             className={[
@@ -89,10 +89,10 @@ export function FeedbackEntryPage() {
             ].join(' ')}
           >
             {trimmedEmail.length === 0
-              ? '请输入常用邮箱，用于接收处理进展。'
+              ? t(I18N_KEYS.ENTRY_EMAIL_HINT_EMPTY)
               : emailValid
-                ? '邮箱格式正确，可继续验证。'
-                : '邮箱格式不正确，请检查后重试。'}
+                ? t(I18N_KEYS.ENTRY_EMAIL_HINT_VALID)
+                : t(I18N_KEYS.ENTRY_EMAIL_HINT_INVALID)}
           </p>
 
           <button
@@ -101,7 +101,7 @@ export function FeedbackEntryPage() {
             disabled={!emailValid || isLoading}
             className="mt-4 h-11 w-full rounded-xl bg-indigo-600 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(79,70,229,0.28)] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:shadow-none"
           >
-            {isLoading ? '发送中...' : '下一步：验证邮箱'}
+            {isLoading ? t(I18N_KEYS.ENTRY_SENDING) : t(I18N_KEYS.ENTRY_NEXT_VERIFY)}
           </button>
 
           {error && (
@@ -110,20 +110,18 @@ export function FeedbackEntryPage() {
         </section>
 
         <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-          <h3 className="text-sm font-bold text-amber-900">匿名反馈</h3>
-          <p className="mt-1 text-xs leading-relaxed text-amber-800">
-            匿名反馈仍会被处理，但由于缺少可验证联系方式，处理速度会略慢一些。
-          </p>
+          <h3 className="text-sm font-bold text-amber-900">{t(I18N_KEYS.ENTRY_ANON_TITLE)}</h3>
+          <p className="mt-1 text-xs leading-relaxed text-amber-800">{t(I18N_KEYS.ENTRY_ANON_DESC)}</p>
           <button
             type="button"
             onClick={handleContinueAnonymous}
             className="mt-3 h-9 rounded-lg bg-amber-600 px-4 text-sm font-semibold text-white"
           >
-            匿名继续
+            {t(I18N_KEYS.ENTRY_ANON_CONTINUE)}
           </button>
           {anonymous && (
             <p className="mt-2 rounded-lg border border-amber-300 bg-white/70 px-3 py-2 text-xs text-amber-900">
-              已选择匿名模式，后续将无法通过邮箱接收提醒。
+              {t(I18N_KEYS.ENTRY_ANON_SELECTED)}
             </p>
           )}
         </section>
