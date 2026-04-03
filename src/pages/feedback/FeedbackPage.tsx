@@ -57,6 +57,7 @@ export function FeedbackPage() {
         attachments,
       }
 
+      let isAnonymous = false
       if (getSessionToken()) {
         // 邮箱流程：token 已存入 sessionStorage，buildHeaders 会自动携带 Authorization
         try {
@@ -66,6 +67,7 @@ export function FeedbackPage() {
           if (err instanceof Error && err.message.includes('401')) {
             clearSessionToken()
             await submitAnonymousFeedback(feedbackData)
+            isAnonymous = true
           } else {
             throw err
           }
@@ -73,6 +75,7 @@ export function FeedbackPage() {
       } else {
         // 匿名流程
         await submitAnonymousFeedback(feedbackData)
+        isAnonymous = true
       }
 
       setUploadProgress(100)
@@ -80,7 +83,7 @@ export function FeedbackPage() {
       setFiles([])
       setTimeout(() => {
         setSubmitted(false)
-        navigate('/feedback/list')
+        navigate(isAnonymous ? '/' : '/feedback/list')
       }, 2000)
     } catch (error) {
       console.error('Submit feedback failed:', error)

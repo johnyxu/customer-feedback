@@ -112,7 +112,7 @@ export function FeedbackEntryPage() {
         <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
           <h3 className="text-sm font-bold text-amber-900">匿名反馈</h3>
           <p className="mt-1 text-xs leading-relaxed text-amber-800">
-            匿名反馈仍会被处理，但由于缺少可验证联系方式，处理和回访速度会略慢一些。
+            匿名反馈仍会被处理，但由于缺少可验证联系方式，处理速度会略慢一些。
           </p>
           <button
             type="button"

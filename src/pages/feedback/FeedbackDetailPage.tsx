@@ -52,11 +52,7 @@ export function FeedbackDetailPage() {
     }
   }, [feedbackId, navigate])
 
-  useEffect(() => {
-    if (!loading && thread) {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [loading, thread])
+
 
   const messages: FeedbackMessage[] = thread
     ? [...thread.messages].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
