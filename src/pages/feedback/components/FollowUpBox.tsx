@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { submitFollowUp, getFeedbackThread, type FeedbackThread } from '@api/feedbackService'
+import { submitFollowUp, getFeedbackThread } from '@api/feedbackService'
 import { uploadFiles, type AttachmentPayload } from '@api/uploadService'
 import { I18N_KEYS } from '@i18n/keys'
 import { useI18n } from '@i18n/useI18n'
+import type { FeedbackThread } from '@/types/api-contracts'
 import { UploadBox } from './UploadBox'
 
 type Props = {

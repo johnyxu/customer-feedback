@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  feedbackTypeLabel,
-  listFeedback,
-  clearSessionToken,
-  statusChip,
-  type FeedbackListItem,
-} from '@api/feedbackService'
+import { feedbackTypeLabel, listFeedback, clearSessionToken, statusChip } from '@api/feedbackService'
+import type { FeedbackListItem } from '@/types/api-contracts'
 import { LocaleSwitcher } from '@components/ui/LocaleSwitcher'
 import { I18N_KEYS } from '@i18n/keys'
 import { useI18n } from '@i18n/useI18n'
@@ -89,11 +84,11 @@ export function FeedbackListPage() {
                   className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm"
                   role="button"
                   tabIndex={0}
-                  onClick={() => navigate(`/feedback/detail/${item.id}`)}
+                  onClick={() => navigate(`/feedback/${item.id}/detail`)}
                   onKeyDown={event => {
                     if (event.key !== 'Enter' && event.key !== ' ') return
                     event.preventDefault()
-                    navigate(`/feedback/detail/${item.id}`)
+                    navigate(`/feedback/${item.id}/detail`)
                   }}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -113,8 +108,13 @@ export function FeedbackListPage() {
                     <p className="mt-1.5 truncate text-sm text-slate-600">{item.firstCustomerMessage.content}</p>
                   )}
 
-                  <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
-                    <span>⭐ {item.rating}</span>
+                  <div className="mt-3 flex items-center justify-between gap-2 text-xs text-slate-500">
+                    <div className="flex items-center gap-3">
+                      <span>⭐ {item.rating}</span>
+                      <span>
+                        {item.messageCount} {t(I18N_KEYS.LIST_MESSAGE_COUNT)}
+                      </span>
+                    </div>
                     <span>{formatUpdatedAt(item.updatedAt, locale)}</span>
                   </div>
 

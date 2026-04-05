@@ -81,6 +81,7 @@ export const I18N_KEYS = {
   LIST_EMPTY: 'list.empty',
   LIST_OVERVIEW: 'list.overview',
   LIST_REPLIED_SUMMARY_SUFFIX: 'list.repliedSummarySuffix',
+  LIST_MESSAGE_COUNT: 'list.messageCount',
   LIST_VIEW_DETAIL: 'list.viewDetail',
 
   VERIFY_PAGE_TITLE: 'verify.page.title',

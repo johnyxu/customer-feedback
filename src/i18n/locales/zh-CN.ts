@@ -81,6 +81,7 @@ export const zhCNMessages: Record<I18nKey, string> = {
   'list.empty': '暂无反馈记录',
   'list.overview': '反馈处理概览',
   'list.repliedSummarySuffix': '条已得到回复或解决',
+  'list.messageCount': '消息',
   'list.viewDetail': '查看详情 ›',
 
   'verify.page.title': '验证邮箱',

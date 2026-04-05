@@ -81,6 +81,7 @@ export const zhHantMessages: Record<I18nKey, string> = {
   'list.empty': '暫無反饋記錄',
   'list.overview': '反饋處理概覽',
   'list.repliedSummarySuffix': '條已獲得回覆或解決',
+  'list.messageCount': '訊息',
   'list.viewDetail': '查看詳情 ›',
 
   'verify.page.title': '驗證信箱',

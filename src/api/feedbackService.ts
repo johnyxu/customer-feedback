@@ -23,106 +23,27 @@ import { I18N_KEYS, type I18nKey } from '../i18n/keys'
 import { buildApiUrl, buildHeaders } from './client'
 import { setAuthData, type AuthData } from './auth'
 import type { AttachmentPayload } from './uploadService'
+import type {
+  FeedbackStatus,
+  FeedbackListItem,
+  FeedbackListResponse,
+  EmailSendCodeRequest,
+  EmailSendCodeResponse,
+  FeedbackSubmitRequest,
+  FeedbackSubmitResponse,
+  FeedbackAnonymousSubmitRequest,
+  FeedbackAnonymousSubmitResponse,
+  FeedbackBindEmailRequest,
+  FeedbackBindEmailResponse,
+  FeedbackFollowUpRequest,
+  FeedbackFollowUpResponse,
+  FeedbackThreadResponse,
+} from '../types/api-contracts'
 
 export type { AuthData, AuthIdentity } from './auth'
 export type { AttachmentPayload } from './uploadService'
 export { getAuthData, getSessionToken, clearSessionToken } from './auth'
 export { uploadFiles, uploadFileToCloudStorage } from './uploadService'
-
-// ============================================================
-// Domain types
-// ============================================================
-
-export type FeedbackStatus = 'new' | 'reviewed' | 'replied' | 'resolved'
-
-export type FeedbackSubmitData = {
-  type: string
-  content: string
-  rating: number
-  locale: string
-  attachments: AttachmentPayload[]
-}
-
-export type FeedbackListFirstMessage = {
-  id: string
-  feedbackId: string
-  sender: 'customer' | 'admin'
-  senderId: string
-  content: string
-  isQuestion: boolean
-  inReplyToMessageId: string | null
-  createdAt: string
-}
-
-export type FeedbackListItem = {
-  id: string
-  type: string
-  rating: number
-  contact: string | null
-  allowContact: boolean
-  status: FeedbackStatus
-  locale: string
-  submitMode: string
-  identityId: string
-  firstCustomerMessageId: string | null
-  latestAdminReply: FeedbackListFirstMessage | null
-  createdAt: string
-  updatedAt: string
-  firstCustomerMessage: FeedbackListFirstMessage | null
-  tagMaps: unknown[]
-}
-
-export type FeedbackAttachment = {
-  id: string
-  feedbackId: string
-  messageId: string
-  url: string
-  filename: string
-  sizeBytes: number
-  createdAt: string
-}
-
-export type FeedbackMessage = {
-  id: string
-  feedbackId: string
-  sender: 'customer' | 'admin'
-  senderId: string
-  content: string
-  isQuestion: boolean
-  inReplyToMessageId: string | null
-  createdAt: string
-  attachments: FeedbackAttachment[]
-}
-
-export type FeedbackIdentity = {
-  id: string
-  mode: string
-  anonymousId: string
-  email: string | null
-  emailVerifiedAt: string | null
-  isEmailBound: boolean
-  createdAt: string
-  updatedAt: string
-}
-
-export type FeedbackThread = {
-  id: string
-  type: string
-  rating: number
-  contact: string | null
-  allowContact: boolean
-  status: FeedbackStatus
-  locale: string
-  submitMode: string
-  identityId: string
-  firstCustomerMessageId: string | null
-  latestAdminReply: FeedbackMessage | null
-  createdAt: string
-  updatedAt: string
-  identity: FeedbackIdentity
-  messages: FeedbackMessage[]
-  tagMaps: unknown[]
-}
 
 // ============================================================
 // UI display mappings
@@ -157,11 +78,11 @@ export function statusChip(status: FeedbackStatus, locale: Locale): { label: str
 // Email verification flow
 // ============================================================
 
-export async function sendEmailVerificationCode(email: string): Promise<{ success: boolean; message?: string }> {
+export async function sendEmailVerificationCode(email: string): Promise<EmailSendCodeResponse> {
   const response = await fetch(buildApiUrl(FEEDBACK_EMAIL_SEND_CODE_PATH), {
     method: 'POST',
     headers: buildHeaders(),
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email } as EmailSendCodeRequest),
   })
   if (!response.ok) throw new Error(`Failed to send verification code: ${response.status}`)
   return response.json()
@@ -174,14 +95,12 @@ export async function verifyEmailCode(email: string, code: string): Promise<Auth
     body: JSON.stringify({ email, code }),
   })
   if (!response.ok) throw new Error(`Verification failed: ${response.status}`)
-  const data = (await response.json()) as AuthData
+  const { data } = (await response.json()) as { data: AuthData; meta?: unknown }
   setAuthData(data)
   return data
 }
 
-export async function submitFeedback(
-  feedbackData: FeedbackSubmitData,
-): Promise<{ success: boolean; id?: string; message?: string }> {
+export async function submitFeedback(feedbackData: FeedbackSubmitRequest): Promise<FeedbackSubmitResponse> {
   const response = await fetch(buildApiUrl(FEEDBACK_SUBMIT_PATH), {
     method: 'POST',
     headers: buildHeaders(),
@@ -194,8 +113,8 @@ export async function submitFeedback(
 export async function submitEmailFeedback(
   email: string,
   code: string,
-  feedbackData: FeedbackSubmitData,
-): Promise<{ success: boolean; id?: string; message?: string }> {
+  feedbackData: FeedbackSubmitRequest,
+): Promise<FeedbackSubmitResponse> {
   const response = await fetch(buildApiUrl(FEEDBACK_EMAIL_SUBMIT_PATH), {
     method: 'POST',
     headers: buildHeaders(),
@@ -210,8 +129,8 @@ export async function submitEmailFeedback(
 // ============================================================
 
 export async function submitAnonymousFeedback(
-  feedbackData: FeedbackSubmitData,
-): Promise<{ success: boolean; id?: string; anonymousToken?: string; message?: string }> {
+  feedbackData: FeedbackAnonymousSubmitRequest,
+): Promise<FeedbackAnonymousSubmitResponse> {
   const response = await fetch(buildApiUrl(FEEDBACK_ANONYMOUS_SUBMIT_PATH), {
     method: 'POST',
     headers: buildHeaders(),
@@ -221,15 +140,11 @@ export async function submitAnonymousFeedback(
   return response.json()
 }
 
-export async function bindAnonymousEmail(
-  anonymousToken: string,
-  email: string,
-  code: string,
-): Promise<{ success: boolean; message?: string }> {
+export async function bindAnonymousEmail(request: FeedbackBindEmailRequest): Promise<FeedbackBindEmailResponse> {
   const response = await fetch(buildApiUrl(FEEDBACK_ANONYMOUS_BIND_EMAIL_PATH), {
     method: 'POST',
     headers: buildHeaders(),
-    body: JSON.stringify({ anonymousToken, email, code }),
+    body: JSON.stringify(request),
   })
   if (!response.ok) throw new Error(`Bind email failed: ${response.status}`)
   return response.json()
@@ -245,32 +160,31 @@ export async function listFeedback(): Promise<FeedbackListItem[]> {
     headers: buildHeaders(),
   })
   if (!response.ok) throw new Error(`List feedback failed: ${response.status}`)
-  const body = await response.json()
-  if (Array.isArray(body)) return body
-  if (Array.isArray(body?.data)) return body.data
-  if (Array.isArray(body?.feedbacks)) return body.feedbacks
-  if (Array.isArray(body?.items)) return body.items
-  return []
+  const result = (await response.json()) as FeedbackListResponse
+  return result.data?.items || []
 }
 
-export async function getFeedbackThread(feedbackId: string): Promise<FeedbackThread> {
+export async function getFeedbackThread(feedbackId: string) {
   const response = await fetch(buildApiUrl(feedbackThreadPath(feedbackId)), {
     method: 'GET',
     headers: buildHeaders(),
   })
   if (!response.ok) throw new Error(`Get thread failed: ${response.status}`)
-  return response.json()
+  const result = (await response.json()) as FeedbackThreadResponse
+  if (!result.data) throw new Error('Failed to get feedback thread: no data')
+  return result.data
 }
 
 export async function submitFollowUp(
   feedbackId: string,
   content: string,
   attachments: AttachmentPayload[] = [],
-): Promise<{ success: boolean; message?: string }> {
+): Promise<FeedbackFollowUpResponse> {
+  const request: FeedbackFollowUpRequest = { content, attachments }
   const response = await fetch(buildApiUrl(feedbackFollowUpPath(feedbackId)), {
     method: 'POST',
     headers: buildHeaders(),
-    body: JSON.stringify({ content, attachments }),
+    body: JSON.stringify(request),
   })
   if (!response.ok) throw new Error(`Follow-up failed: ${response.status}`)
   return response.json()

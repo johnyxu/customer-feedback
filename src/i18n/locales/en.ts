@@ -86,6 +86,7 @@ export const enMessages: Record<I18nKey, string> = {
   'list.empty': 'No feedback records yet',
   'list.overview': 'Feedback Overview',
   'list.repliedSummarySuffix': 'items have been replied to or resolved',
+  'list.messageCount': 'Messages',
   'list.viewDetail': 'View Details ›',
 
   'verify.page.title': 'Verify Email',
