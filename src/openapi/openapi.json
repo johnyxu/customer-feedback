@@ -1867,6 +1867,7 @@
                                 "new",
                                 "reviewed",
                                 "replied",
+                                "renew",
                                 "resolved"
                               ]
                             },
@@ -2863,6 +2864,7 @@
                             "new",
                             "reviewed",
                             "replied",
+                            "renew",
                             "resolved"
                           ]
                         },
@@ -3221,6 +3223,7 @@
                       "new",
                       "reviewed",
                       "replied",
+                      "renew",
                       "resolved"
                     ]
                   },
@@ -3276,6 +3279,7 @@
                             "new",
                             "reviewed",
                             "replied",
+                            "renew",
                             "resolved"
                           ]
                         },
@@ -3285,6 +3289,7 @@
                             "new",
                             "reviewed",
                             "replied",
+                            "renew",
                             "resolved"
                           ]
                         },
@@ -3666,6 +3671,7 @@
                                 "new",
                                 "reviewed",
                                 "replied",
+                                "renew",
                                 "resolved"
                               ]
                             },
@@ -3699,6 +3705,7 @@
                                 "new",
                                 "reviewed",
                                 "replied",
+                                "renew",
                                 "resolved"
                               ]
                             },
@@ -3857,6 +3864,7 @@
                 "new",
                 "reviewed",
                 "replied",
+                "renew",
                 "resolved"
               ]
             },
@@ -4105,6 +4113,7 @@
                                       "new",
                                       "reviewed",
                                       "replied",
+                                      "renew",
                                       "resolved"
                                     ]
                                   },
@@ -4481,6 +4490,7 @@
                                       "new",
                                       "reviewed",
                                       "replied",
+                                      "renew",
                                       "resolved"
                                     ]
                                   },
@@ -5010,6 +5020,7 @@
                             "new",
                             "reviewed",
                             "replied",
+                            "renew",
                             "resolved"
                           ]
                         },
@@ -5832,6 +5843,7 @@
                             "new",
                             "reviewed",
                             "replied",
+                            "renew",
                             "resolved"
                           ]
                         },
