@@ -59,6 +59,7 @@ export const enMessages: Record<I18nKey, string> = {
   'feedback.status.new': 'Pending',
   'feedback.status.reviewed': 'In Progress',
   'feedback.status.replied': 'Admin Replied',
+  'feedback.status.renew': 'Customer Follow-up',
   'feedback.status.resolved': 'Resolved',
   'feedback.type.experienceIssue': 'Experience Issue',
 

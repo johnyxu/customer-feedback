@@ -56,6 +56,7 @@ export const I18N_KEYS = {
   FEEDBACK_STATUS_NEW: 'feedback.status.new',
   FEEDBACK_STATUS_REVIEWED: 'feedback.status.reviewed',
   FEEDBACK_STATUS_REPLIED: 'feedback.status.replied',
+  FEEDBACK_STATUS_RENEW: 'feedback.status.renew',
   FEEDBACK_STATUS_RESOLVED: 'feedback.status.resolved',
   FEEDBACK_TYPE_EXPERIENCE_ISSUE: 'feedback.type.experienceIssue',
 

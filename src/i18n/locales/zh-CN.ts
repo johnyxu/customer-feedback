@@ -56,6 +56,7 @@ export const zhCNMessages: Record<I18nKey, string> = {
   'feedback.status.new': '待处理',
   'feedback.status.reviewed': '处理中',
   'feedback.status.replied': '管理员已回复',
+  'feedback.status.renew': '客户新消息',
   'feedback.status.resolved': '已解决',
   'feedback.type.experienceIssue': '体验问题',
 

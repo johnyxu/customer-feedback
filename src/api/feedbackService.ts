@@ -71,6 +71,9 @@ export function statusChip(status: FeedbackStatus, locale: Locale): { label: str
   if (status === 'replied') {
     return { label: messages[locale][I18N_KEYS.FEEDBACK_STATUS_REPLIED], className: 'bg-emerald-50 text-emerald-700' }
   }
+  if (status === 'renew') {
+    return { label: messages[locale][I18N_KEYS.FEEDBACK_STATUS_RENEW], className: 'bg-violet-50 text-violet-700' }
+  }
   return { label: messages[locale][I18N_KEYS.FEEDBACK_STATUS_RESOLVED], className: 'bg-slate-100 text-slate-600' }
 }
 

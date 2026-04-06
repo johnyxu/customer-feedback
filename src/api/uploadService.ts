@@ -1,5 +1,6 @@
 import { SIGNED_UPLOAD_PATH } from '../constants/routes'
 import { buildApiUrl, buildHeaders } from './client'
+import type { StorageSignedUploadUrlRequest, StorageSignedUploadUrlResponse } from '@/types/api-contracts'
 
 export type AttachmentPayload = {
   url: string
@@ -8,24 +9,38 @@ export type AttachmentPayload = {
 }
 
 export async function getSignedUploadUrl(
-  filename: string,
   contentType: string,
   size: number,
 ): Promise<{ uploadUrl: string; fileUrl: string; requiredHeaders?: Record<string, string> }> {
+  const requestBody: StorageSignedUploadUrlRequest = {
+    contentType: contentType || 'application/octet-stream',
+    size,
+  }
+
   const response = await fetch(buildApiUrl(SIGNED_UPLOAD_PATH), {
     method: 'POST',
     headers: buildHeaders(),
-    body: JSON.stringify({ filename, contentType: contentType || 'application/octet-stream', size }),
+    body: JSON.stringify(requestBody),
   })
   if (!response.ok) throw new Error(`Failed to get signed url: ${response.status}`)
-  return response.json()
+
+  const result = (await response.json()) as StorageSignedUploadUrlResponse
+  if (!result.data?.uploadUrl || !result.data?.fileUrl) {
+    throw new Error('Failed to get signed url: missing upload url data')
+  }
+
+  return {
+    uploadUrl: result.data.uploadUrl,
+    fileUrl: result.data.fileUrl,
+    requiredHeaders: result.data.requiredHeaders,
+  }
 }
 
 export async function uploadFileToCloudStorage(
   file: File,
   onProgress?: (loaded: number, total: number) => void,
 ): Promise<AttachmentPayload> {
-  const signed = await getSignedUploadUrl(file.name, file.type, file.size)
+  const signed = await getSignedUploadUrl(file.type, file.size)
 
   await new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest()

@@ -228,6 +228,41 @@
                           "format": "email",
                           "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
                         },
+                        "firstName": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "lastName": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "avatar": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "format": "uri"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "role": {
+                          "type": "string",
+                          "minLength": 1
+                        },
                         "isActive": {
                           "type": "boolean"
                         },
@@ -265,6 +300,10 @@
                         "id",
                         "username",
                         "email",
+                        "firstName",
+                        "lastName",
+                        "avatar",
+                        "role",
                         "isActive",
                         "createdAt",
                         "lastLoginAt",
@@ -1010,7 +1049,7 @@
               "default": 20,
               "type": "integer",
               "minimum": 1,
-              "maximum": 100
+              "maximum": 999
             },
             "in": "query",
             "name": "pageSize",

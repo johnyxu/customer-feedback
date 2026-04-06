@@ -43,34 +43,6 @@ export type FeedbackBindEmailRequest =
 export type FeedbackBindEmailResponse =
   FeedbackPathsType['/api/feedback/anonymous/bind-email']['post']['responses']['200']['content']['application/json']
 
-/** POST /api/feedback/{feedbackId}/admin-reply - Add admin reply to feedback thread */
-export type FeedbackAdminReplyRequest =
-  FeedbackPathsType['/api/feedback/{feedbackId}/admin-reply']['post']['requestBody']['content']['application/json']
-export type FeedbackAdminReplyResponse =
-  FeedbackPathsType['/api/feedback/{feedbackId}/admin-reply']['post']['responses']['201']['content']['application/json']
-
-/** GET /api/feedback/{feedbackId} - Get feedback detail (admin only) */
-export type FeedbackDetailResponse =
-  FeedbackPathsType['/api/feedback/{feedbackId}']['get']['responses']['200']['content']['application/json']
-
-/** PATCH /api/feedback/{feedbackId}/status - Update feedback status */
-export type FeedbackUpdateStatusRequest =
-  FeedbackPathsType['/api/feedback/{feedbackId}/status']['patch']['requestBody']['content']['application/json']
-export type FeedbackUpdateStatusResponse =
-  FeedbackPathsType['/api/feedback/{feedbackId}/status']['patch']['responses']['200']['content']['application/json']
-
-/** PATCH /api/feedback/{feedbackId}/tags - Update feedback tags */
-export type FeedbackUpdateTagsRequest =
-  FeedbackPathsType['/api/feedback/{feedbackId}/tags']['patch']['requestBody']['content']['application/json']
-export type FeedbackUpdateTagsResponse =
-  FeedbackPathsType['/api/feedback/{feedbackId}/tags']['patch']['responses']['200']['content']['application/json']
-
-/** POST /api/feedback/{feedbackId}/mark-as-duplicate - Mark feedback as duplicate */
-export type FeedbackMarkDuplicateRequest =
-  FeedbackPathsType['/api/feedback/{feedbackId}/mark-as-duplicate']['post']['requestBody']['content']['application/json']
-export type FeedbackMarkDuplicateResponse =
-  FeedbackPathsType['/api/feedback/{feedbackId}/mark-as-duplicate']['post']['responses']['201']['content']['application/json']
-
 /** GET /api/feedback - List feedback with filters and pagination */
 export type FeedbackListResponse =
   FeedbackPathsType['/api/feedback']['get']['responses']['200']['content']['application/json']
@@ -105,14 +77,16 @@ export type StorageSignedUploadUrlResponse =
 // HELPER TYPES - Extracted from responses
 // ============================================================================
 
+type FeedbackListItemFromResponse = NonNullable<NonNullable<FeedbackListResponse['data']>['items']>[number]
+
 /** Feedback status enum */
-export type FeedbackStatus = 'new' | 'reviewed' | 'replied' | 'resolved'
+export type FeedbackStatus = FeedbackListItemFromResponse['status']
 
 /** Feedback type enum */
-export type FeedbackType = 'bug' | 'feature' | 'experience' | 'other'
+export type FeedbackType = FeedbackListItemFromResponse['type']
 
 /** Locale enum */
-export type LocaleType = 'zh-CN' | 'zh-Hant' | 'en'
+export type LocaleType = FeedbackListItemFromResponse['locale']
 
 /** Extract attachment type from feedback responses */
 export type FeedbackAttachment = NonNullable<
@@ -126,7 +100,7 @@ export type FeedbackIdentity = NonNullable<NonNullable<FeedbackThreadResponse['d
 export type FeedbackMessage = NonNullable<NonNullable<FeedbackThreadResponse['data']>['messages']>[number]
 
 /** Extract feedback item from list response */
-export type FeedbackListItem = NonNullable<NonNullable<FeedbackListResponse['data']>['items']>[number]
+export type FeedbackListItem = FeedbackListItemFromResponse
 
 /** Extract single feedback thread */
 export type FeedbackThread = NonNullable<FeedbackThreadResponse['data']>

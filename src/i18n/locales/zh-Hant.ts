@@ -56,6 +56,7 @@ export const zhHantMessages: Record<I18nKey, string> = {
   'feedback.status.new': '待處理',
   'feedback.status.reviewed': '處理中',
   'feedback.status.replied': '管理員已回覆',
+  'feedback.status.renew': '客戶新訊息',
   'feedback.status.resolved': '已解決',
   'feedback.type.experienceIssue': '體驗問題',
 
