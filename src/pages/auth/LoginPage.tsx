@@ -55,7 +55,7 @@ export function LoginPage() {
   return (
     <div className="min-h-screen bg-[#f5f5f7] font-sans">
       {/* Hero */}
-      <div className="relative overflow-hidden bg-linear-to-br from-[#0ea5e9] via-[#2563eb] to-[#4f46e5] px-4 pb-8 pt-3 text-white">
+      <div className="relative bg-linear-to-br from-[#0ea5e9] via-[#2563eb] to-[#4f46e5] px-4 pb-8 pt-3 text-white">
         <div className="flex items-center justify-between">
           <p className="text-xs uppercase tracking-[0.14em] text-white/80">Customer Feedback</p>
           <LocaleSwitcher variant="dark" />
