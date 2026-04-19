@@ -24,3 +24,10 @@ export const FEEDBACK_LIST_PATH = '/api/feedback'
 // 动态路由（含 feedbackId）
 export const feedbackThreadPath = (feedbackId: string) => `/api/feedback/${feedbackId}/thread`
 export const feedbackFollowUpPath = (feedbackId: string) => `/api/feedback/${feedbackId}/follow-up`
+
+// 认证流程
+export const AUTH_LOGIN_PATH = '/api/auth/login'
+export const AUTH_REGISTER_PATH = '/api/auth/register'
+export const AUTH_GOOGLE_PATH = '/api/auth/google'
+export const AUTH_FORGOT_PASSWORD_PATH = '/api/auth/forgot-password'
+export const AUTH_RESET_PASSWORD_PATH = '/api/auth/reset-password'

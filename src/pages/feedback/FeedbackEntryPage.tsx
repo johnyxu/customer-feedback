@@ -107,6 +107,46 @@ export function FeedbackEntryPage() {
           {error && (
             <p className="mt-2 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-600">{error}</p>
           )}
+
+          <div className="mt-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-gray-200" />
+            <span className="text-xs text-gray-400">{t(I18N_KEYS.ENTRY_LOGIN_DIVIDER)}</span>
+            <div className="h-px flex-1 bg-gray-200" />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => navigate('/auth/login')}
+            className="mt-3 h-11 w-full rounded-xl border border-gray-200 bg-gray-50 text-sm font-semibold text-gray-700"
+          >
+            {t(I18N_KEYS.ENTRY_LOGIN_WITH_PASSWORD)}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate('/auth/login?method=google')}
+            className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700"
+          >
+            <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true">
+              <path
+                d="M43.611 20.083H42V20H24v8h11.303C33.654 32.657 29.332 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
+                fill="#FFC107"
+              />
+              <path
+                d="M6.306 14.691l6.571 4.819C14.655 15.108 19.001 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"
+                fill="#FF3D00"
+              />
+              <path
+                d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.311 0-9.815-3.317-11.69-8H6.16A19.955 19.955 0 0024 44z"
+                fill="#4CAF50"
+              />
+              <path
+                d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l6.19 5.238C39.712 40.208 44 34.617 44 28c0-1.341-.138-2.65-.389-3.917z"
+                fill="#1976D2"
+              />
+            </svg>
+            {t(I18N_KEYS.ENTRY_LOGIN_WITH_GOOGLE)}
+          </button>
         </section>
 
         <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
